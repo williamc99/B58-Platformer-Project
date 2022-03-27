@@ -54,53 +54,31 @@
 	
 	# Draw white line for score
 	li $t1, WHITE			# $t1 stores the white colour code
-	addi $t2, $zero, scoreLineY	# $t2 stores y-value
-	addi $t3, $zero, 0		# $t3 stores start index
-	addi $t4, $zero, 63		# $t4 stores length
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t4, 0($sp)			# Push length to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t3, 0($sp)			# Push start index to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t2, 0($sp)			# Push y value to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t1, 0($sp)			# Push colour code to stack
+	addi $t4, $zero, scoreLineY	# $t4 stores y-value
+	addi $t2, $zero, 0		# $t2 stores start index
+	addi $t3, $zero, 63		# $t3 stores length
 	jal drawLine			# Call drawLine function
-	# Draw water line
+	# Draw water line 1
 	li $t1, WATERBLUE		# $t1 stores the white colour code
-	addi $t2, $zero, waterLine1	# $t2 stores y-value
-	addi $t3, $zero, 0		# $t3 stores start index
-	addi $t4, $zero, 63		# $t4 stores length
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t4, 0($sp)			# Push length to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t3, 0($sp)			# Push start index to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t2, 0($sp)			# Push y value to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t1, 0($sp)			# Push colour code to stack
-	jal drawLine			# Call drawLine function
-	# Draw water line
+	addi $t4, $zero, waterLine1	# $t4 stores y-value
+	addi $t2, $zero, 0		# $t2 stores start index
+	addi $t3, $zero, 63		# $t3 stores length		
+	jal drawLine
+	# Draw water line 2
 	li $t1, WATERBLUE		# $t1 stores the white colour code
-	addi $t2, $zero, waterLine2	# $t2 stores y-value
-	addi $t3, $zero, 0		# $t3 stores start index
-	addi $t4, $zero, 63		# $t4 stores length
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t4, 0($sp)			# Push length to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t3, 0($sp)			# Push start index to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t2, 0($sp)			# Push y value to stack
-	addi $sp, $sp, -4		# Prepare stack address
-	sw $t1, 0($sp)			# Push colour code to stack
-	jal drawLine			# Call drawLine function
-	
-	
+	addi $t4, $zero, waterLine2	# $t4 stores y-value
+	addi $t2, $zero, 0		# $t2 stores start index
+	addi $t3, $zero, 63		# $t3 stores length		
+	jal drawLine
+
+
 	
 	# Terminate Program
 	li $v0, 10			# Terminate program
 	syscall				
 	
+
+
 
 
 # This function draws a horizontal line that stretches the width
@@ -113,14 +91,15 @@ drawLine:
 	# let $t5 = address of pixel
 	# let $t6 = address of pixel + base address
 	
-	lw $t1, 0($sp)			# Pop colour code form stack and store in $t1
-	addi $sp, $sp, 4			# Update stack address
-	lw $t4, 0($sp)			# Pop y value from stack and store in $t4
-	addi $sp, $sp, 4			# Update stack address
-	lw $t2, 0($sp)			# Pop start index from stack and store in $t8
-	addi $sp, $sp, 4			# Update stack address
-	lw $t3, 0($sp)			# Pop length from stack and store in $t3
-	addi $sp, $sp, 4			# Update stack address
+	
+	#lw $t1, 0($sp)			# Pop colour code from stack and store in $t1
+	#addi $sp, $sp, 4			# Update stack address
+	#lw $t4, 0($sp)			# Pop y value from stack and store in $t4
+	#addi $sp, $sp, 4			# Update stack address
+	#lw $t2, 0($sp)			# Pop start index from stack and store in $t8
+	#addi $sp, $sp, 4			# Update stack address
+	#lw $t3, 0($sp)			# Pop length from stack and store in $t3
+	#addi $sp, $sp, 4			# Update stack address
 	
 	sll $t2, $t2, 2			# $t2 = start index * 4
 	sll $t3, $t3, 2			# Set $t3 = length * 4
@@ -146,14 +125,13 @@ drawLineLoop:
 	
 	
 	
-# This function draws the "score" text
-drawScore:
-	lw $t1, 0($sp)			# Pop colour code form stack and store in $t1
-	addi $sp, $sp, 4			# Update stack address
-	lw $t2, 0($sp)			# Pop y value from stack and store in $t2
-	addi $sp, $sp, 4			# Update stack address
 	
-		
+	
+	
+	
+	
+	
+	
 	
 clearRegisters:
 	# Usage:
