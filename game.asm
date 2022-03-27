@@ -38,28 +38,51 @@
 .eqv	BLACK 0x000000 
 .eqv	BROWN 0x795548
 .eqv	WHITE 0xffffff
+.eqv 	WATERBLUE 0x2195f3
 	
 .eqv	HEIGHT 64
 .eqv	WIDTH 64
 .eqv	MAX_X 252
 	
 .eqv	scoreLineY 56
+.eqv 	waterLine1 55
+.eqv	waterLine2 54
 
 .data
 .text
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
+	
+	# Draw white line for score
 	li $t1, WHITE			# $t1 stores the white colour code
-	addi $t2, $t2, scoreLineY
-
+	addi $t2, $zero, scoreLineY	# $t2 stores y-value
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t2, 0($sp)			# Push y value to stack
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t1, 0($sp)			# Push colour code to stack
+	jal drawLine			# Call drawLine function
+	# Draw blue line for water
+	li $t1, WATERBLUE		# $t1 stores the colour code
+	addi $t2, $zero, waterLine1	# $t2 stores y-value
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t2, 0($sp)			# Push y value to stack
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t1, 0($sp)			# Push colour code to stack
+	jal drawLine			# Call drawLine function
+	# Draw another blue line for water
+	li $t1, WATERBLUE		# $t1 stores the colour code
+	addi $t2, $zero, waterLine2	# $t2 stores y-value
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t2, 0($sp)			# Push y value to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t1, 0($sp)			# Push colour code to stack
 	jal drawLine			# Call drawLine function
 	
+	# Terminate Program
 	li $v0, 10			# Terminate program
 	syscall				
 	
+
+
 
 drawLine:
 	# let $t0 = base_address
@@ -85,7 +108,25 @@ drawLineLoop:
 	sw $t1, 0($t6)			# Paint the pixel
 	addi $t2, $t2, 4			# Increment index by 4
 	ble $t2, $t3, drawLineLoop	# Continue loop if i <= 252
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack	
 	jr $ra				# Jump back to line that called us
+	
+clearRegisters:
+	# Usage:
+		#jal clearRegisters		# Clear registers using function
+		#lw $ra, 0($sp)			# Restore $ra
+		#addi $sp, $sp, 4			# Prepare stack address
+	move $t1, $0			# Clear register
+	move $t2, $0			# Clear register
+	move $t3, $0			# Clear register
+	move $t4, $0			# Clear register
+	move $t5, $0			# Clear register
+	move $t6, $0			# Clear register
+	move $t7, $0			# Clear register
+	move $t8, $0			# Clear register
+	move $t9, $0			# Clear register
+	jr $ra
 
 
 
