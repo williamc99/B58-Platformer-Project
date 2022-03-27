@@ -108,161 +108,161 @@ drawStart:
 	jal drawLine
 	# Chiesel Details
 	# First Row
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 58 		# $t4 stores y-value
 	addi $t2, $zero, 10		# $t2 stores start index
 	addi $t3, $zero, 10		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 58 		# $t4 stores y-value
 	addi $t2, $zero, 14		# $t2 stores start index
 	addi $t3, $zero, 15		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 58 		# $t4 stores y-value
 	addi $t2, $zero, 19		# $t2 stores start index
 	addi $t3, $zero, 20		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 58 		# $t4 stores y-value
 	addi $t2, $zero, 23		# $t2 stores start index
 	addi $t3, $zero, 24		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 58 		# $t4 stores y-value
 	addi $t2, $zero, 28		# $t2 stores start index
 	addi $t3, $zero, 30		# $t3 stores end index
 	jal drawLine
 	# Second Row
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 11		# $t2 stores start index
 	addi $t3, $zero, 14		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 16		# $t2 stores start index
 	addi $t3, $zero, 19		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 21		# $t2 stores start index
 	addi $t3, $zero, 22		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 24		# $t2 stores start index
 	addi $t3, $zero, 24		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 26		# $t2 stores start index
 	addi $t3, $zero, 27		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 29		# $t2 stores start index
 	addi $t3, $zero, 29		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 59 		# $t4 stores y-value
 	addi $t2, $zero, 31		# $t2 stores start index
 	addi $t3, $zero, 33		# $t3 stores end index
 	jal drawLine
 	# Third Row
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 60 		# $t4 stores y-value
 	addi $t2, $zero, 14		# $t2 stores start index
 	addi $t3, $zero, 14		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 60 		# $t4 stores y-value
 	addi $t2, $zero, 16		# $t2 stores start index
 	addi $t3, $zero, 19		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 60 		# $t4 stores y-value
 	addi $t2, $zero, 21		# $t2 stores start index
 	addi $t3, $zero, 22		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 60 		# $t4 stores y-value
 	addi $t2, $zero, 24		# $t2 stores start index
 	addi $t3, $zero, 24		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 60 		# $t4 stores y-value
 	addi $t2, $zero, 28		# $t2 stores start index
 	addi $t3, $zero, 29		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 60 		# $t4 stores y-value
 	addi $t2, $zero, 33		# $t2 stores start index
 	addi $t3, $zero, 33		# $t3 stores end index
 	jal drawLine
 	# Fourth Row
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 10		# $t2 stores start index
 	addi $t3, $zero, 12		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 14		# $t2 stores start index
 	addi $t3, $zero, 14		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 16		# $t2 stores start index
 	addi $t3, $zero, 19		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 21		# $t2 stores start index
 	addi $t3, $zero, 22		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 24		# $t2 stores start index
 	addi $t3, $zero, 24		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 26		# $t2 stores start index
 	addi $t3, $zero, 26		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 28		# $t2 stores start index
 	addi $t3, $zero, 29		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 61 		# $t4 stores y-value
 	addi $t2, $zero, 31		# $t2 stores start index
 	addi $t3, $zero, 33		# $t3 stores end index
 	jal drawLine
 	# Fifth Row
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 62 		# $t4 stores y-value
 	addi $t2, $zero, 13		# $t2 stores start index
 	addi $t3, $zero, 15		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 62 		# $t4 stores y-value
 	addi $t2, $zero, 19		# $t2 stores start index
 	addi $t3, $zero, 20		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 62 		# $t4 stores y-value
 	addi $t2, $zero, 23		# $t2 stores start index
 	addi $t3, $zero, 24		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 62 		# $t4 stores y-value
 	addi $t2, $zero, 26		# $t2 stores start index
 	addi $t3, $zero, 27		# $t3 stores end index
 	jal drawLine
-	li $t1, BLACK			# $t1 stores the white colour code
+	li $t1, BLACK			# $t1 stores the black colour code
 	addi $t4, $zero, 62 		# $t4 stores y-value
 	addi $t2, $zero, 29		# $t2 stores start index
 	addi $t3, $zero, 30		# $t3 stores end index
@@ -281,6 +281,44 @@ drawStart:
 	
 	#---------------------------------Draw Score Numbers-------------------------------
 	# Draw Zeroes
+	li $t1, WHITE			# $t1 stores the white colour code
+	addi $t4, $zero, 58 		# $t4 stores y-value
+	addi $t2, $zero, 47		# $t2 stores start index
+	addi $t3, $zero, 48		# $t3 stores end index
+	jal drawLine
+	li $t1, WHITE			# $t1 stores the white colour code
+	addi $t4, $zero, 58 		# $t4 stores y-value
+	addi $t2, $zero, 52		# $t2 stores start index
+	addi $t3, $zero, 53		# $t3 stores end index
+	jal drawLine
+	li $t1, WHITE			# $t1 stores the white colour code
+	addi $t4, $zero, 62 		# $t4 stores y-value
+	addi $t2, $zero, 47		# $t2 stores start index
+	addi $t3, $zero, 48		# $t3 stores end index
+	jal drawLine
+	li $t1, WHITE			# $t1 stores the white colour code
+	addi $t4, $zero, 62 		# $t4 stores y-value
+	addi $t2, $zero, 52		# $t2 stores start index
+	addi $t3, $zero, 53		# $t3 stores end index
+	jal drawLine
+	li $t1, WHITE			# $t1 stores the white colour code
+	# First coloumn
+	sw $t1, 15288($t0)		# Paint pixel white
+	sw $t1, 15544($t0)		# Paint pixel white
+	sw $t1, 15800($t0)		# Paint pixel white
+	# Second coloumn
+	sw $t1, 15300($t0)		# Paint pixel white
+	sw $t1, 15556($t0)		# Paint pixel white
+	sw $t1, 15812($t0)		# Paint pixel white
+	# Third coloumn
+	sw $t1, 15308($t0)		# Paint pixel white
+	sw $t1, 15564($t0)		# Paint pixel white
+	sw $t1, 15820($t0)		# Paint pixel white
+	# Fourth coloumn
+	sw $t1, 15320($t0)		# Paint pixel white
+	sw $t1, 15576($t0)		# Paint pixel white
+	sw $t1, 15832($t0)		# Paint pixel white
+		
 	
 	
 	
@@ -291,6 +329,10 @@ drawStart:
 	li $v0, 10			# Assign syscall
 	syscall				# Call syscall
 	
+
+
+
+
 
 
 
