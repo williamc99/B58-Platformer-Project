@@ -55,27 +55,47 @@
 	# Draw white line for score
 	li $t1, WHITE			# $t1 stores the white colour code
 	addi $t2, $zero, scoreLineY	# $t2 stores y-value
+	addi $t3, $zero, 0		# $t3 stores start index
+	addi $t4, $zero, 63		# $t4 stores length
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t4, 0($sp)			# Push length to stack
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t3, 0($sp)			# Push start index to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t2, 0($sp)			# Push y value to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t1, 0($sp)			# Push colour code to stack
 	jal drawLine			# Call drawLine function
-	# Draw blue line for water
-	li $t1, WATERBLUE		# $t1 stores the colour code
+	# Draw water line
+	li $t1, WATERBLUE		# $t1 stores the white colour code
 	addi $t2, $zero, waterLine1	# $t2 stores y-value
+	addi $t3, $zero, 0		# $t3 stores start index
+	addi $t4, $zero, 63		# $t4 stores length
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t4, 0($sp)			# Push length to stack
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t3, 0($sp)			# Push start index to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t2, 0($sp)			# Push y value to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t1, 0($sp)			# Push colour code to stack
 	jal drawLine			# Call drawLine function
-	# Draw another blue line for water
-	li $t1, WATERBLUE		# $t1 stores the colour code
+	# Draw water line
+	li $t1, WATERBLUE		# $t1 stores the white colour code
 	addi $t2, $zero, waterLine2	# $t2 stores y-value
+	addi $t3, $zero, 0		# $t3 stores start index
+	addi $t4, $zero, 63		# $t4 stores length
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t4, 0($sp)			# Push length to stack
+	addi $sp, $sp, -4		# Prepare stack address
+	sw $t3, 0($sp)			# Push start index to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t2, 0($sp)			# Push y value to stack
 	addi $sp, $sp, -4		# Prepare stack address
 	sw $t1, 0($sp)			# Push colour code to stack
 	jal drawLine			# Call drawLine function
+	
+	
 	
 	# Terminate Program
 	li $v0, 10			# Terminate program
@@ -83,34 +103,57 @@
 	
 
 
-
+# This function draws a horizontal line that stretches the width
 drawLine:
 	# let $t0 = base_address
 	# let $t1 = colour code
 	# let $t2 = i
-	# let $t3 = max length
-	# let $t4 = y value
+	# let $t3 = max length (goes from 0 - 63)
+	# let $t4 = y * width
 	# let $t5 = address of pixel
 	# let $t6 = address of pixel + base address
-	# let $t7 = y * width
 	
 	lw $t1, 0($sp)			# Pop colour code form stack and store in $t1
 	addi $sp, $sp, 4			# Update stack address
 	lw $t4, 0($sp)			# Pop y value from stack and store in $t4
 	addi $sp, $sp, 4			# Update stack address
-	add $t2, $zero, $zero		# $t2 holds value of i 
-	addi $t3, $zero, 252		# Let $t3 hold the max length
-	sll $t7, $t4, 8			# Multiply y value by 256 to get y*width*4	
+	lw $t2, 0($sp)			# Pop start index from stack and store in $t8
+	addi $sp, $sp, 4			# Update stack address
+	lw $t3, 0($sp)			# Pop length from stack and store in $t3
+	addi $sp, $sp, 4			# Update stack address
+	
+	sll $t2, $t2, 2			# $t2 = start index * 4
+	sll $t3, $t3, 2			# Set $t3 = length * 4
+	sll $t4, $t4, 8			# Multiply y value by 256 to get y*width*4	
 	
 drawLineLoop:
-	add $t5, $t7, $t2		# $t5 = y*width + x		
+	add $t5, $t4, $t2		# $t5 = y*width + x		
 	add $t6, $t5, $t0		# $t6 = address of pixel + base address
 	sw $t1, 0($t6)			# Paint the pixel
 	addi $t2, $t2, 4			# Increment index by 4
-	ble $t2, $t3, drawLineLoop	# Continue loop if i <= 252
+	ble $t2, $t3, drawLineLoop	# Continue loop if i <= max length
 	addi $sp, $sp, -4		# Update stack address
 	sw $ra, 0($sp)			# Push $ra to the stack	
 	jr $ra				# Jump back to line that called us
+	
+	
+	
+	
+	
+	
+	
+		
+	
+	
+	
+# This function draws the "score" text
+drawScore:
+	lw $t1, 0($sp)			# Pop colour code form stack and store in $t1
+	addi $sp, $sp, 4			# Update stack address
+	lw $t2, 0($sp)			# Pop y value from stack and store in $t2
+	addi $sp, $sp, 4			# Update stack address
+	
+		
 	
 clearRegisters:
 	# Usage:
@@ -127,6 +170,9 @@ clearRegisters:
 	move $t8, $0			# Clear register
 	move $t9, $0			# Clear register
 	jr $ra
+	
+	
+
 
 
 
