@@ -50,6 +50,14 @@
  .eqv 	PPGREEN2 0x8bc34a
  .eqv 	PPVIOLET1 0x661fff
  .eqv	PPVIOLET2 0xb488ff
+ 
+ .eqv	COINYELLOW 0xffc107
+ .eqv	COINBLUE 0x40a4f5
+ 
+ .eqv	HAIRWHITE 0xf5f5f5
+ .eqv	LEFTEYE 0x3e2723
+ .eqv	RIGHTEYE  0xd50000
+ .eqv	SKINPEACH 0xfce8db
 	
 .eqv	HEIGHT 64
 .eqv	WIDTH 64
