@@ -42,6 +42,14 @@
 .eqv	BUTTONGRAY 0x9e9e9e
 .eqv	BUTTONRED 0xff1745
 .eqv	BARRIERBROWN 0x4e342e
+.eqv	STOPPEDORANGE 0xff5622
+
+ .eqv	PPBLUE1	0x2195f3
+ .eqv	PPBLUE2 	0x40c3ff
+ .eqv	PPGREEN1 0x4caf4f
+ .eqv 	PPGREEN2 0x8bc34a
+ .eqv 	PPVIOLET1 0x661fff
+ .eqv	PPVIOLET2 0xb488ff
 	
 .eqv	HEIGHT 64
 .eqv	WIDTH 64
@@ -405,8 +413,7 @@ drawStart:
 	addi $t2, $zero, 60		# $t2 stores start index
 	addi $t3, $zero, 63		# $t3 stores end index
 	jal drawLine
-	
-	
+		
 	
 	#---------------------------------Draw Button--------------------------------------
 	# Button Base
@@ -429,6 +436,33 @@ drawStart:
 	sw $t1, 800($t0)			# Paint colour
 	sw $t1, 1056($t0)		# Paint colour
 	sw $t1, 1312($t0)		# Paint colour
+
+	#---------------------------------Draw Stopped Platforms---------------------------
+	# Platform 5
+	li $t1, STOPPEDORANGE		# $t1 stores the colour code
+	addi $t4, $zero, 33 		# $t4 stores y-value
+	addi $t2, $zero, 20		# $t2 stores start index
+	addi $t3, $zero, 27		# $t3 stores end index
+	jal drawLine
+	# Platform 6
+	li $t1, STOPPEDORANGE		# $t1 stores the colour code
+	addi $t4, $zero, 33 		# $t4 stores y-value
+	addi $t2, $zero, 47		# $t2 stores start index
+	addi $t3, $zero, 53		# $t3 stores end index
+	jal drawLine
+	# Platform 10
+	li $t1, STOPPEDORANGE		# $t1 stores the colour code
+	addi $t4, $zero, 17 		# $t4 stores y-value
+	addi $t2, $zero, 10		# $t2 stores start index
+	addi $t3, $zero, 16		# $t3 stores end index
+	jal drawLine
+	# Platform 12
+	li $t1, STOPPEDORANGE		# $t1 stores the colour code
+	addi $t4, $zero, 11 		# $t4 stores y-value
+	addi $t2, $zero, 42		# $t2 stores start index
+	addi $t3, $zero, 51		# $t3 stores end index
+	jal drawLine
+
 
 
 
@@ -454,7 +488,7 @@ drawStart:
 drawLine:
 	sll $t2, $t2, 2			# $t2 = start index * 4
 	sll $t3, $t3, 2			# Set $t3 = end index * 4
-	sll $t4, $t4, 8			# Multiply y value by 256 to get y*width*4	
+	sll $t4, $t4, 8			# Multiply y value by 256 to get y*width*4
 drawLineLoop:
 	add $t5, $t4, $t2		# $t5 = y*width + x		
 	add $t6, $t5, $t0		# $t6 = address of pixel + base address
