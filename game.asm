@@ -79,6 +79,8 @@ initialize:
 	addi $s3, $zero, 0		# Store player old x-value
 	addi $s4, $zero, 0 		# Store player old y-value
 	addi $s5, $zero, 0		# Store player jump counter
+	addi $s6, $zero, 1		# Store player in air or platform boolean ( 0 = air, 1 = platform)
+	addi $s7, $zero, 0		# Store drawCheck (0 = draw, 1 = don't draw character)
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
 	
 	jal drawStart			# Draw the screen
@@ -86,6 +88,7 @@ initialize:
 	
 #---------------------------------Main Loop--------------------------------------
 main:	
+	addi $s7, $zero, 1		# Set drawCheck to 1 ( don't draw)
 	move $s3, $s1			# Save old x value
 	move $s4, $s2			# Save old y value
 	# Check for key press
@@ -94,20 +97,26 @@ main:
 	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
 jumpKeyPressed:
 	# Check if player is on platform
+	#jal checkPlatform
+	
+	# Redraw Character
+	addi $t5, $zero, 1		
+	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacter
+updateCharacter:
 	# Erase object with old coordinates
-		# Check if we don't need to erase anything
 	move $a1, $s3			# Set old x coordinate of character
 	move $a3, $s4			# Set old y coordinate of character
 	jal eraseCharacter		# Erase character
+	# Redraw character
 	move $a1, $s1			# Set new x coordinate of character
 	move $a3, $s2			# Set new y coordinate of character
-	jal drawCharacter
-	
+	jal drawCharacter		# Redraw character
+
+noUpdate:
 	# Sleep
 	li $v0, 32			# Load syscall
 	li $a0, waitDelay 		# Sleep 
 	syscall
-
 	j main				# Loop main
 	
 
@@ -130,12 +139,21 @@ checkKeyPressed:
 	j jumpKeyPressed
 		
 moveLeft:
+	addi $t5, $zero, 0		# Store left boundary
+	beq $s1, $t5, jumpKeyPressed	# If x = 0, don't update x
+	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s1, $s1, -1		# Move x-value left 1
 	j jumpKeyPressed
 moveRight:
+	addi $t5, $zero, 61		# Store right boundary
+	beq $s1, $t5, jumpKeyPressed	# If x = 61, don't update x
+	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s1, $s1, 1			# Move x-value right 1
 	j jumpKeyPressed
 moveUp: 
+	addi $t5, $zero, 0		# Store top boundary
+	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
 restartGame:
