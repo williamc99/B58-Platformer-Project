@@ -44,20 +44,20 @@
 .eqv	BARRIERBROWN 0x4e342e
 .eqv	STOPPEDORANGE 0xff5622
 
- .eqv	PPBLUE1	0x2195f3
- .eqv	PPBLUE2 	0x40c3ff
- .eqv	PPGREEN1 0x4caf4f
- .eqv 	PPGREEN2 0x8bc34a
- .eqv 	PPVIOLET1 0x661fff
- .eqv	PPVIOLET2 0xb488ff
+.eqv	PPBLUE1	0x2195f3
+.eqv	PPBLUE2 	0x40c3ff
+.eqv	PPGREEN1 0x4caf4f
+.eqv 	PPGREEN2 0x8bc34a
+.eqv 	PPVIOLET1 0x661fff
+.eqv	PPVIOLET2 0xb488ff
  
- .eqv	COINYELLOW 0xffc107
- .eqv	COINBLUE 0x40a4f5
+.eqv	COINYELLOW 0xffc107
+.eqv	COINBLUE 0x40a4f5
  
- .eqv	HAIRWHITE 0xf5f5f5
- .eqv	LEFTEYE 0xa1887f
- .eqv	RIGHTEYE  0xd50000
- .eqv	SKINPEACH 0xfce8db
+.eqv	HAIRWHITE 0xf5f5f5
+.eqv	LEFTEYE 0xa1887f
+.eqv	RIGHTEYE  0xd50000
+.eqv	SKINPEACH 0xfce8db
 	
 .eqv	HEIGHT 64
 .eqv	WIDTH 64
@@ -69,9 +69,45 @@
 
 .data
 .text
-drawStart:
+
+
+initialize:
+	addi $s1, $zero, 0		# Store player x-value
+	addi $s2, $zero, 0		# Store player y-value
+	addi $s3, $zero, 0		# Store player old x-value
+	addi $s4, $zero, 0 		# Store player old y-value
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
 	
+	jal drawStart			# Draw the screen
+
+main:	
+	# Check for key press
+	li $t9, 0xffff0000		# Load keypressed memory address
+	lw $t8, 0($t9)			
+	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
+	
+
+
+
+
+end:	
+	li $v0, 10			# Terminate program
+	syscall				# Call syscall
+	
+
+
+
+
+
+
+
+
+#####-------------------------------------DRAW BOARD----------------------------------#####
+
+drawStart:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
 	
 	#---------------------------------Draw Water---------------------------------------
 	# Draw water line 1
@@ -529,15 +565,12 @@ drawStart:
 	addi $a1, $zero, 2		# Set x-value
 	addi $a3, $zero, 46		# Set y-value
 	jal drawCharacter
-
-
-	#---------------------------------Terminate Program--------------------------------
-	li $v0, 10			# Assign syscall
-	syscall				# Call syscall
 	
-
-
-
+	
+	# Finish Drawing Board
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
 
 
 
@@ -562,6 +595,10 @@ drawStart:
 # let $t5 = address of pixel
 # let $t6 = address of pixel + base address
 drawLine:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
 	move $t1, $a0			# Get arguments
 	move $t2, $a1
 	move $t3, $a2
@@ -576,8 +613,9 @@ drawLineLoop:
 	sw $t1, 0($t6)			# Paint the pixel
 	addi $t2, $t2, 4			# Increment index by 4
 	ble $t2, $t3, drawLineLoop	# Continue loop if i <= end index
-	addi $sp, $sp, -4		# Update stack address
-	sw $ra, 0($sp)			# Push $ra to the stack	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra				# Jump back to line that called us
 	
 	
@@ -592,6 +630,10 @@ drawCoin:
 # $t5 = base address + index
 # $t6 = temp storage for address
 
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
 	move $t2, $a2			# $t2 gets x-value
 	move $t3, $a3			# $t3 gets y-value
 	
@@ -650,8 +692,10 @@ drawCoin:
 	add $t5, $t6, $t0		# $t5 = base address + index 
 	sw $t1, 0($t5)			# Paint pixel
 		
-	jr $ra				# Return to line that called function
-	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
 	
 				
 #-----------------------------------------Draw Pickup Function-----------------------------					
@@ -660,7 +704,8 @@ drawPickup:
 # $a1 = start index
 # $a2 = end index
 # $a3 = y value
-
+	
+	# Store $ra
 	addi $sp, $sp, -4		# Update stack address
 	sw $ra, 0($sp)			# Push $ra to the stack
 	move $t7, $a1			# Store arguments in temp registers
@@ -739,8 +784,10 @@ drawPickupEND:
 # $a3 = y value
 
 drawCharacter:
+	# Store $ra
 	addi $sp, $sp, -4		# Update stack address
 	sw $ra, 0($sp)			# Push $ra to the stack
+	
 	addi $a2, $a1, 2 		# Create and store the end index
 	move $t7, $a1			# Store start index
 	move $t8, $a2			# Store end index
@@ -770,18 +817,45 @@ drawCharacter:
 	addi $t2, $t2, 4			# Go right one x unit
 	add $t5, $t2, $t0		# $t5 = base address + pixel index
 	sw $t1, 0($t5)			# Paint pixel	
-	# End function
+	# Restore $ra
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
 	
 	
+
+# This function assumes a key press happened, and checks which direction
+checkKeyPressed:
+
+
+
+	
+		
+
+				
+								
+												
+																
+																				
+																								
+																												
+																																
+																																				
+																																								
+																																												
+																																																
+																																																				
+																																																								
+																																																												
+																																																																				
+	
+#----------------------------------------Other Functions-------------------------------		
 	
 clearRegisters:
-	# Usage:
-		#jal clearRegisters		# Clear registers using function
-		#lw $ra, 0($sp)			# Restore $ra
-		#addi $sp, $sp, 4			# Prepare stack address
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+
 	move $t1, $0			# Clear register
 	move $t2, $0			# Clear register
 	move $t3, $0			# Clear register
@@ -791,7 +865,12 @@ clearRegisters:
 	move $t7, $0			# Clear register
 	move $t8, $0			# Clear register
 	move $t9, $0			# Clear register
-	jr $ra
+	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+
 	
 	
 
