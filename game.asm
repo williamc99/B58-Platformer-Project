@@ -499,6 +499,29 @@ drawStart:
 	addi $a3, $zero, 1		# Set y value
 	jal drawCoin
 	
+	
+	#---------------------------------Draw Pickups-------------------------------------
+	# Blue Pickup
+	li $a0, PPBLUE1
+	addi $a1, $zero, 60
+	addi $a2, $zero, 62
+	addi $a3, $zero, 36
+	jal drawPickup
+	# Green Pickup
+	li $a0, PPGREEN1
+	addi $a1, $zero, 29
+	addi $a2, $zero, 31
+	addi $a3, $zero, 13
+	jal drawPickup
+	# Purple Pickup 
+	li $a0, PPVIOLET1
+	addi $a1, $zero, 60
+	addi $a2, $zero, 62
+	addi $a3, $zero, 2
+	jal drawPickup
+
+
+
 
 
 
@@ -506,6 +529,19 @@ drawStart:
 	li $v0, 10			# Assign syscall
 	syscall				# Call syscall
 	
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -611,14 +647,88 @@ drawCoin:
 	jr $ra				# Return to line that called function
 	
 	
-		
-			
 				
-					
+#-----------------------------------------Draw Pickup Function-----------------------------					
+drawPickup:
+# $a0 = determines which colour pickup to draw ( PPBLUE1 = blue, PPGREEN1 = green, PPVIOLET1 = purple )
+# $a1 = start index
+# $a2 = end index
+# $a3 = y value
+
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	move $t7, $a1			# Store arguments in temp registers
+	move $t8, $a2
+	move $t9, $a3	
+	
+	beq $a0, PPBLUE1, drawPickupBlue	# Check which colour pickup to draw
+	beq $a0, PPGREEN1, drawPickupGreen
+drawPickupPurple:
+	li $a0, PPVIOLET1		# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	li $a0, PPVIOLET2		# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	addi $a3, $a3, 1			# Go down one level
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	li $a0, WHITE			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	addi $a3, $a3, 2			# Go down one level
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	j drawPickupEND
+drawPickupBlue:	
+	li $a0, PPBLUE1			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	li $a0, PPBLUE2			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	addi $a3, $a3, 1			# Go down one level
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	li $a0, WHITE			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	addi $a3, $a3, 2			# Go down one level
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	j drawPickupEND
+drawPickupGreen:
+	li $a0, PPGREEN1			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	li $a0, PPGREEN2			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	addi $a3, $a3, 1			# Go down one level
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	li $a0, WHITE			# $a0 stores the colour code
+	add $a3, $zero, $t9 		# $a3 stores y-value
+	addi $a3, $a3, 2			# Go down one level
+	add $a1, $zero, $t7		# $a1 stores start index
+	add $a2, $zero, $t8		# $a2 stores end index
+	jal drawLine
+	j drawPickupEND	
+drawPickupEND:	
+	lw $ra, 0($sp)		# Restore $ra
+	addi $sp, $sp, 4		# Prepare stack address
+	jr $ra					
 						
-							
-								
 										
+	
+	
+	
 	
 clearRegisters:
 	# Usage:
