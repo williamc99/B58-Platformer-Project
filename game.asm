@@ -55,7 +55,7 @@
  .eqv	COINBLUE 0x40a4f5
  
  .eqv	HAIRWHITE 0xf5f5f5
- .eqv	LEFTEYE 0x3e2723
+ .eqv	LEFTEYE 0xa1887f
  .eqv	RIGHTEYE  0xd50000
  .eqv	SKINPEACH 0xfce8db
 	
@@ -86,6 +86,7 @@ drawStart:
 	addi $a1, $zero, 0		# $a1 stores start index
 	addi $a2, $zero, 63		# $a2 stores length		
 	jal drawLine
+	
 	
 	#---------------------------------Draw Score---------------------------------------
 	# Draw white line for score
@@ -299,6 +300,7 @@ drawStart:
 	addi $a2, $zero, 36		# $a2 stores end index
 	jal drawLine
 	
+	
 	#---------------------------------Draw Score Numbers-------------------------------
 	# Draw Zeroes
 	# Row 1
@@ -446,6 +448,7 @@ drawStart:
 	sw $a0, 1056($t0)		# Paint colour
 	sw $a0, 1312($t0)		# Paint colour
 
+
 	#---------------------------------Draw Stopped Platforms---------------------------
 	# Platform 5
 	li $a0, STOPPEDORANGE		# $a0 stores the colour code
@@ -471,6 +474,7 @@ drawStart:
 	addi $a1, $zero, 42		# $a1 stores start index
 	addi $a2, $zero, 51		# $a2 stores end index
 	jal drawLine
+	
 	
 	#---------------------------------Draw Coins---------------------------------------
 	# Coins are numbered from lowest to highest, left to right
@@ -520,9 +524,11 @@ drawStart:
 	addi $a3, $zero, 2
 	jal drawPickup
 
-
-
-
+	
+	#---------------------------------Draw Character----------------------------------
+	addi $a1, $zero, 2		# Set x-value
+	addi $a3, $zero, 46		# Set y-value
+	jal drawCharacter
 
 
 	#---------------------------------Terminate Program--------------------------------
@@ -544,7 +550,7 @@ drawStart:
 
 
 
-
+#####-------------------------------------START OF FUNCTIONS--------------------------#####
 
 #-----------------------------------------Draw Line Function-------------------------------
 # This function draws a horizontal line given the dimensions
@@ -723,10 +729,51 @@ drawPickupGreen:
 drawPickupEND:	
 	lw $ra, 0($sp)		# Restore $ra
 	addi $sp, $sp, 4		# Prepare stack address
-	jr $ra					
-						
-										
+	jr $ra	
 	
+
+				
+						
+#-----------------------------------------Draw Character Function-------------------------
+# $a1 = x value
+# $a3 = y value
+
+drawCharacter:
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	addi $a2, $a1, 2 		# Create and store the end index
+	move $t7, $a1			# Store start index
+	move $t8, $a2			# Store end index
+	move $t9, $a3			# Store y-value
+	# Draw Hair
+	li $a0, HAIRWHITE		# Load colour
+	jal drawLine
+	# Draw Face
+	li $a0, SKINPEACH
+	move $a1, $t7			# Restore x-value
+	move $a2, $t8			# Resore end index
+	addi $a3, $t9, 2			# Update y index
+	jal drawLine
+	# Draw Eyes and Nose
+	li $t1, LEFTEYE
+	sll $t2, $t9, 8			# $t2 = y*256 
+	sll $t3, $t7, 2			# $t3 = x*4
+	add $t2, $t2, $t3		# $t2 = address of pixel
+	addi $t2, $t2, 256		# Go down one level
+	add $t5, $t2, $t0		# $t5 = base address + pixel index
+	sw $t1, 0($t5)			# Paint pixel		
+	li $t1, SKINPEACH
+	addi $t2, $t2, 4			# Go right one x unit
+	add $t5, $t2, $t0		# $t5 = base address + pixel index
+	sw $t1, 0($t5)			# Paint pixel	
+	li $t1, RIGHTEYE
+	addi $t2, $t2, 4			# Go right one x unit
+	add $t5, $t2, $t0		# $t5 = base address + pixel index
+	sw $t1, 0($t5)			# Paint pixel	
+	# End function
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
 	
 	
 	
