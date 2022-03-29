@@ -67,38 +67,86 @@
 .eqv 	waterLine1 55
 .eqv	waterLine2 54
 
+.eqv	waitDelay 40
+
 .data
 .text
 
-
+#---------------------------------Initialize Game--------------------------------
 initialize:
-	addi $s1, $zero, 0		# Store player x-value
-	addi $s2, $zero, 0		# Store player y-value
+	addi $s1, $zero, 2		# Store player x-value
+	addi $s2, $zero, 46		# Store player y-value
 	addi $s3, $zero, 0		# Store player old x-value
 	addi $s4, $zero, 0 		# Store player old y-value
+	addi $s5, $zero, 0		# Store player jump counter
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
 	
 	jal drawStart			# Draw the screen
-
+	
+	
+#---------------------------------Main Loop--------------------------------------
 main:	
+	move $s3, $s1			# Save old x value
+	move $s4, $s2			# Save old y value
 	# Check for key press
 	li $t9, 0xffff0000		# Load keypressed memory address
 	lw $t8, 0($t9)			
 	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
+jumpKeyPressed:
+	# Check if player is on platform
+	# Erase object with old coordinates
+		# Check if we don't need to erase anything
+	move $a1, $s3			# Set old x coordinate of character
+	move $a3, $s4			# Set old y coordinate of character
+	jal eraseCharacter		# Erase character
+	move $a1, $s1			# Set new x coordinate of character
+	move $a3, $s2			# Set new y coordinate of character
+	jal drawCharacter
+	
+	# Sleep
+	li $v0, 32			# Load syscall
+	li $a0, waitDelay 		# Sleep 
+	syscall
+
+	j main				# Loop main
 	
 
+																																						
+																																																																																																																		
+				
+checkKeyPressed:
+	move $s3, $s1			# Save old x value
+	move $s4, $s2			# Save old y value
+	
+	lw $t2, 4($t9) 			# Get key value of press
+	# Check if left
+	beq $t2, 0x61, moveLeft		# ASCII code of 'a' is 0x61 
+	# Check if right
+	beq $t2, 0x64, moveRight		# ASCII code of 'd' is 0x64
+	# Check if up
+	beq $t2, 0x77, moveUp		# ASCII code of 'w' is 0x77
+	# Check if restart (p)
+	beq $t2, 0x70, restartGame	# ASCII code of 'p' is 0x70
+	j jumpKeyPressed
+		
+moveLeft:
+	addi $s1, $s1, -1		# Move x-value left 1
+	j jumpKeyPressed
+moveRight:
+	addi $s1, $s1, 1			# Move x-value right 1
+	j jumpKeyPressed
+moveUp: 
+	addi $s2, $s2, -1		# Move y-value up 1
+	j jumpKeyPressed
+restartGame:
+	# For now, this function will prematurely exit
+	# Later on, change this to restart the game
+	j END
 
 
-
-end:	
+END:	
 	li $v0, 10			# Terminate program
 	syscall				# Call syscall
-	
-
-
-
-
-
 
 
 
@@ -821,29 +869,47 @@ drawCharacter:
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
+
+#-----------------------------------------Erase Character Function------------------------
+# $a1 = x value
+# $a3 = y value
+
+eraseCharacter:
+	# Store $ra
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	addi $a2, $a1, 2 		# Create and store the end index
+	move $t7, $a1			# Store start index
+	move $t8, $a2			# Store end index
+	move $t9, $a3			# Store y-value
+	# Draw Hair
+	li $a0, BLACK			# Load colour
+	jal drawLine
+	# Draw Eyes and Nose
+	move $a1, $t7			# Restore x-value
+	move $a2, $t8			# Resore end index
+	addi $a3, $t9, 1			# Update y index
+	jal drawLine
+	# Draw Face
+	move $a1, $t7			# Restore x-value
+	move $a2, $t8			# Resore end index
+	addi $a3, $t9, 2			# Update y index
+	jal drawLine
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
 	
 	
 
-# This function assumes a key press happened, and checks which direction
-checkKeyPressed:
+
 
 
 
 	
 		
-
-				
-								
-												
-																
-																				
-																								
-																												
-																																
-																																				
-																																								
-																																												
-																																																
+																																															
 																																																				
 																																																								
 																																																												
