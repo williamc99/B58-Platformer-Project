@@ -58,15 +58,13 @@
 .eqv	LEFTEYE 0xa1887f
 .eqv	RIGHTEYE  0xd50000
 .eqv	SKINPEACH 0xfce8db
-	
-.eqv	HEIGHT 64
-.eqv	WIDTH 64
-.eqv	MAX_X 252
-	
+		
 .eqv	scoreLineY 56
 .eqv 	waterLine1 55
 .eqv	waterLine2 54
 .eqv	waitDelay 40
+.eqv 	maxJumpCount 8
+
 
 .data
 .text
@@ -75,10 +73,10 @@
 initialize:
 	addi $s1, $zero, 2		# Store player x-value
 	addi $s2, $zero, 46		# Store player y-value
-	addi $s3, $zero, 0		# Store player old x-value
-	addi $s4, $zero, 0 		# Store player old y-value
+	addi $s3, $zero, 2		# Store player old x-value
+	addi $s4, $zero, 46 		# Store player old y-value
 	addi $s5, $zero, 0		# Store player jump counter
-	addi $s6, $zero, 1		# Store player in air or platform boolean ( 0 = air, 1 = platform) [CONSIDER REMOVING]
+	addi $s6, $zero, 0		# Store inAir value (0 = not mid-jump, 1 = mid-jump)
 	addi $s7, $zero, 0		# Store drawCheck (0 = draw, 1 = don't draw character)
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
 	
@@ -90,21 +88,21 @@ main:
 	addi $s7, $zero, 1		# Set drawCheck to 1 ( don't draw)
 	move $s3, $s1			# Save old x value
 	move $s4, $s2			# Save old y value
-	# Check if still jumping
-	bgtz $s5, moveGravity		# Check if jump counter > 0 (jump in progress)
-jumpJump:
+	
+	# Check for mid-jump/gravity
+	beq $s6, $zero, moveGravity	# If not mid jump (inAir = 0), check gravity
+	j altMoveUp			# Else, we are mid-jump so move up
+	
+jumpLookKey:	
 	# Check for key press
 	li $t9, 0xffff0000		# Load keypressed memory address
 	lw $t8, 0($t9)			
 	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
+		
 jumpKeyPressed:
-	# Check if player is on platform
-	jal checkPlatform
-	
 	# Redraw Character
 	addi $t5, $zero, 1		
-	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacter
-updateCharacter:
+	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacter	
 	# Erase object with old coordinates
 	move $a1, $s3			# Set old x coordinate of character
 	move $a3, $s4			# Set old y coordinate of character
@@ -113,7 +111,7 @@ updateCharacter:
 	move $a1, $s1			# Set new x coordinate of character
 	move $a3, $s2			# Set new y coordinate of character
 	jal drawCharacter		# Redraw character
-
+	
 noUpdate:
 	# Sleep
 	li $v0, 32			# Load syscall
@@ -136,31 +134,7 @@ END:
 
 #####---------------------------------MOVEMENT FUNCTIONS------------------------------#####
 
-# This function checks if player is on platform
-# $a1 = colour
-# $a2 = x value
-# $a3 = y value
-checkPlatform:
-	# Store $ra	
-	addi $sp, $sp, -4		# Update stack address
-	sw $ra, 0($sp)			# Push $ra to the stack
-	
-	li $a1, BROWN			# Load platform colour
-	move $a2, $s1			# Set $a2 to new x
-	move $a3, $s2			# Set $a3 to new y
-	jal checkBottom
-	bgtz $v0, noJumper 		# If return greater than 0, set jump counter to 0
-	lw $ra, 0($sp)			# Restore $ra
-	addi $sp, $sp, 4			# Prepare stack address
-	jr $ra	
-noJumper:
-	addi $s5, $zero, 0		# Set jump counter to 0
-	lw $ra, 0($sp)			# Restore $ra
-	addi $sp, $sp, 4			# Prepare stack address
-	jr $ra	
-	
-	
-	
+		
 # Given colour, and x/y values, check if specified colour is under the player
 # $t9 = Return value (if > 0 then collision found)
 checkBottom:
@@ -202,10 +176,19 @@ checkKeyPressed:
 	# Check if right
 	beq $t2, 0x64, moveRight		# ASCII code of 'd' is 0x64
 	# Check if up
-	beq $t2, 0x77, moveUp		# ASCII code of 'w' is 0x77
+	beq $t2, 0x77, checkMoveUp	# ASCII code of 'w' is 0x77
 	# Check if restart (p)
 	beq $t2, 0x70, restartGame	# ASCII code of 'p' is 0x70
 	j jumpKeyPressed
+	
+checkMoveUp:
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkBottom
+	bgtz $v0, moveUp			# Check if "w" was pressed mid-jump
+	j jumpKeyPressed			# Else, new jump so call function
 		
 moveLeft:
 	addi $t5, $zero, 0		# Store left boundary
@@ -222,32 +205,65 @@ moveRight:
 	j jumpKeyPressed
 	
 moveUp: 
-	bgtz $s5, jumpKeyPressed		# If jump counter > 0, then "w" press does nothing
-skipMoveUp:
+	addi $t6, $zero, maxJumpCount	# Store max jump counter
+	beq $s5, $t6, lastMoveUp 	# If jump counter == maxJumpCount
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
 	addi $s5, $s5, 1			# Increment jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s6, $zero, 1		# Set inAir to 1
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
+lastMoveUp:
+	addi $t5, $zero, 0		# Store top boundary
+	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	addi $s5, $zero, 0		# Reset jump counter
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s6, $zero, 0		# Set inAir to 0
+	addi $s2, $s2, -1		# Move y-value up 1
+	j jumpKeyPressed
+# Alternate moveUp for the case where mid jump but you still need to check for key press	
+altMoveUp: 
+	addi $t6, $zero,  maxJumpCount	# Store max jump counter
+	beq $s5, $t6, altLastMoveUp 	# If jump counter == maxJumpCount
+	addi $t5, $zero, 0		# Store top boundary
+	beq $s2, $t5, jumpLookKey	# If y = 0, don't update y
+	addi $s5, $s5, 1			# Increment jump counter
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s6, $zero, 1		# Set inAir to 1
+	addi $s2, $s2, -1		# Move y-value up 1
+	j jumpLookKey
+altLastMoveUp:
+	addi $t5, $zero, 0		# Store top boundary
+	beq $s2, $t5, jumpLookKey	# If y = 0, don't update y
+	addi $s5, $zero, 0		# Reset jump counter
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s6, $zero, 0		# Set inAir to 0
+	addi $s2, $s2, -1		# Move y-value up 1
+	j jumpLookKey
 	
 moveGravity: 
-	addi $t5, $zero, 7		
-	blt $s5, $t5, skipMoveUp		# If jump counter < 7, go to skipMoveUp (special condiiton)
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkBottom
+	bgtz $v0, noJumper 		# If return greater than 0, set jump counter to 0
 	# Else, start gravity
 	addi $t5, $zero, 61		# Store bottom boundary
 	beq $s2, $t5, jumpKeyPressed	# If y = 61, don't update y
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s2, $s2, 1			# Move y-value down 1
-	j jumpJump
+	j jumpLookKey			# Return to main	
+noJumper:
+	addi $s5, $zero, 0		# Set jump counter to 0
+	addi $s6, $zero, 0		# Set inAir = 0 (not in air)
+	j jumpLookKey			# Return to main
 	
 restartGame:
 	# For now, this function will prematurely exit
 	# Later on, change this to restart the game
 	j END
-
-
-
 
 
 
@@ -993,15 +1009,15 @@ eraseCharacter:
 	move $t7, $a1			# Store start index
 	move $t8, $a2			# Store end index
 	move $t9, $a3			# Store y-value
-	# Draw Hair
-	li $a0, BLACK			# Load colour
+	# Erase Hair
+	li $a0, PPBLUE1			# Load colour
 	jal drawLine
-	# Draw Eyes and Nose
+	# Erase Eyes and Nose
 	move $a1, $t7			# Restore x-value
 	move $a2, $t8			# Resore end index
 	addi $a3, $t9, 1			# Update y index
 	jal drawLine
-	# Draw Face
+	# Erase Face
 	move $a1, $t7			# Restore x-value
 	move $a2, $t8			# Resore end index
 	addi $a3, $t9, 2			# Update y index
