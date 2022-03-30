@@ -66,7 +66,6 @@
 .eqv	scoreLineY 56
 .eqv 	waterLine1 55
 .eqv	waterLine2 54
-
 .eqv	waitDelay 40
 
 .data
@@ -100,7 +99,7 @@ jumpJump:
 	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
 jumpKeyPressed:
 	# Check if player is on platform
-	#jal checkPlatform
+	jal checkPlatform
 	
 	# Redraw Character
 	addi $t5, $zero, 1		
@@ -123,9 +122,76 @@ noUpdate:
 	j main				# Loop main
 	
 
-																																						
-																																																																																																																		
-				
+
+END:	
+	li $v0, 10			# Terminate program
+	syscall				# Call syscall
+
+
+
+
+
+
+
+
+#####---------------------------------MOVEMENT FUNCTIONS------------------------------#####
+
+# This function checks if player is on platform
+# $a1 = colour
+# $a2 = x value
+# $a3 = y value
+checkPlatform:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkBottom
+	bgtz $v0, noJumper 		# If return greater than 0, set jump counter to 0
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+noJumper:
+	addi $s5, $zero, 0		# Set jump counter to 0
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+	
+	
+	
+# Given colour, and x/y values, check if specified colour is under the player
+# $t9 = Return value (if > 0 then collision found)
+checkBottom:
+	move $t1, $a1			# Store colour
+	move $t2, $a2			# Store x
+	addi $t3, $a3, 3			# Store y
+	addi $v0, $zero, 0		# Set $v0 to 0
+	
+	sll $t4, $t3, 8			# Multiply y by 256
+	sll $t2, $t2, 2			# Nultiply x by 4
+	add $t5, $t4, $t2		# y*256 + x
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, ($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkBottomEND	# If colour found, increment and end
+	addi $t5, $t5, 4			# Else, go right by one
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkBottomEND	# If colour found, increment and end
+	addi $t5, $t5, 8			# Else, go right by two
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkBottomEND	# If colour found, increment and end
+	jr $ra				# Colour not found, return 0
+checkBottomEND:
+	addi $v0, $zero, 1		# Set $v0 to 1
+	jr $ra				# Return
+	
+			
+		
+	
+# This function checks for key pressed (assuming a key was pressed)	
 checkKeyPressed:
 	move $s3, $s1			# Save old x value
 	move $s4, $s2			# Save old y value
@@ -181,9 +247,16 @@ restartGame:
 	j END
 
 
-END:	
-	li $v0, 10			# Terminate program
-	syscall				# Call syscall
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -668,7 +741,7 @@ drawStart:
 
 
 
-#####-------------------------------------START OF FUNCTIONS--------------------------#####
+#####-------------------------------------DRAWING FUNCTIONS---------------------------#####
 
 #-----------------------------------------Draw Line Function-------------------------------
 # This function draws a horizontal line given the dimensions
