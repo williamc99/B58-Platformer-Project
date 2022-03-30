@@ -79,7 +79,7 @@ initialize:
 	addi $s3, $zero, 0		# Store player old x-value
 	addi $s4, $zero, 0 		# Store player old y-value
 	addi $s5, $zero, 0		# Store player jump counter
-	addi $s6, $zero, 1		# Store player in air or platform boolean ( 0 = air, 1 = platform)
+	addi $s6, $zero, 1		# Store player in air or platform boolean ( 0 = air, 1 = platform) [CONSIDER REMOVING]
 	addi $s7, $zero, 0		# Store drawCheck (0 = draw, 1 = don't draw character)
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
 	
@@ -91,6 +91,9 @@ main:
 	addi $s7, $zero, 1		# Set drawCheck to 1 ( don't draw)
 	move $s3, $s1			# Save old x value
 	move $s4, $s2			# Save old y value
+	# Check if still jumping
+	bgtz $s5, moveGravity		# Check if jump counter > 0 (jump in progress)
+jumpJump:
 	# Check for key press
 	li $t9, 0xffff0000		# Load keypressed memory address
 	lw $t8, 0($t9)			
@@ -144,18 +147,34 @@ moveLeft:
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s1, $s1, -1		# Move x-value left 1
 	j jumpKeyPressed
+	
 moveRight:
 	addi $t5, $zero, 61		# Store right boundary
 	beq $s1, $t5, jumpKeyPressed	# If x = 61, don't update x
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s1, $s1, 1			# Move x-value right 1
 	j jumpKeyPressed
+	
 moveUp: 
+	bgtz $s5, jumpKeyPressed		# If jump counter > 0, then "w" press does nothing
+skipMoveUp:
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	addi $s5, $s5, 1			# Increment jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
+	
+moveGravity: 
+	addi $t5, $zero, 7		
+	blt $s5, $t5, skipMoveUp		# If jump counter < 7, go to skipMoveUp (special condiiton)
+	# Else, start gravity
+	addi $t5, $zero, 61		# Store bottom boundary
+	beq $s2, $t5, jumpKeyPressed	# If y = 61, don't update y
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s2, $s2, 1			# Move y-value down 1
+	j jumpJump
+	
 restartGame:
 	# For now, this function will prematurely exit
 	# Later on, change this to restart the game
