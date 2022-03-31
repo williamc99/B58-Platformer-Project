@@ -398,9 +398,6 @@ restartGame:
 
 
 
-
-
-
 #####-------------------------------------DRAW BOARD----------------------------------#####
 
 drawStart:
@@ -995,6 +992,78 @@ drawCoin:
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
+	
+	
+eraseCoin:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	move $t2, $a2			# $t2 gets x-value
+	move $t3, $a3			# $t3 gets y-value
+	
+	# Row 1
+	li $t1, BLACK			# Load colour into $t1
+	sll $t6, $t3, 8			# $t6 = y*256	
+	sll $t4, $t2, 2			# $t4 = x*4
+	add $t4, $t4, $t6		# $t4 = address of pixel
+	
+	addi $t6, $t4, 4			# Update index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel	
+	addi $t6, $t6, 4			# Update index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	
+	# Row 2
+	addi $t6, $t4, 256		# Update y index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel	
+	li $t1, BLACK			# Change colour
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	li $t1, BLACK			# Change colour
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	li $t1, BLACK			# Change colour
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	
+	# Row 3
+	addi $t6, $t4, 512		# Update y index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	li $t1, BLACK			# Change colour
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	li $t1, BLACK			# Change colour
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	
+	# Row 4
+	addi $t6, $t4, 768		# Update y index
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+	addi $t6, $t6, 4			# Update x index
+	add $t5, $t6, $t0		# $t5 = base address + index 
+	sw $t1, 0($t5)			# Paint pixel
+		
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+	
+	
+	
 	
 				
 #-----------------------------------------Draw Pickup Function-----------------------------					
