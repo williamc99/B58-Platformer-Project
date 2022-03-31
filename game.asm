@@ -163,7 +163,33 @@ checkBottomEND:
 	addi $v0, $zero, 1		# Set $v0 to 1
 	jr $ra				# Return
 	
-			
+	
+# Given colour, and x/y values, check if specified colour is above the player
+# $t9 = Return value (if > 0 then collision found)
+checkTop:
+	move $t1, $a1			# Store colour
+	move $t2, $a2			# Store x
+	addi $t3, $a3, -1		# Store y
+	addi $v0, $zero, 0		# Set $v0 to 0
+	
+	sll $t4, $t3, 8			# Multiply y by 256
+	sll $t2, $t2, 2			# Nultiply x by 4
+	add $t5, $t4, $t2		# y*256 + x
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, ($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkTopEND	# If colour found, increment and end
+	addi $t5, $t5, 4			# Else, go right by one
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkTopEND	# If colour found, increment and end
+	addi $t5, $t5, 8			# Else, go right by two
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkTopEND	# If colour found, increment and end
+	jr $ra				# Colour not found, return 0
+checkTopEND:
+	addi $v0, $zero, 1		# Set $v0 to 1
+	jr $ra				
 		
 	
 # This function checks for key pressed (assuming a key was pressed)	
@@ -213,17 +239,31 @@ moveUp:
 	beq $s5, $t6, lastMoveUp 	# If jump counter == maxJumpCount
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkTop
+	# Else go up one
 	addi $s5, $s5, 1			# Increment jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s6, $zero, 1		# Set inAir to 1
+	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
 lastMoveUp:
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkTop
+	# Else go up one
 	addi $s5, $zero, 0		# Reset jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s6, $zero, 0		# Set inAir to 0
+	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
 # Alternate moveUp for the case where mid jump but you still need to check for key press	
@@ -233,16 +273,30 @@ altMoveUp:
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, jumpLookKey	# If y = 0, don't update y
 	addi $s5, $s5, 1			# Increment jump counter
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkTop
+	# Else go up one
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s6, $zero, 1		# Set inAir to 1
+	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpLookKey
 altLastMoveUp:
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, jumpLookKey	# If y = 0, don't update y
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkTop
+	# Else go up one
 	addi $s5, $zero, 0		# Reset jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s6, $zero, 0		# Set inAir to 0
+	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpLookKey
 	
@@ -665,7 +719,7 @@ drawStart:
 
 	#---------------------------------Draw Stopped Platforms---------------------------
 	# Platform 5
-	li $a0, STOPPEDORANGE		# $a0 stores the colour code
+	li $a0, BROWN			# $a0 stores the colour code
 	addi $a3, $zero, 33 		# $a3 stores y-value
 	addi $a1, $zero, 20		# $a1 stores start index
 	addi $a2, $zero, 27		# $a2 stores end index
