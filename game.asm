@@ -6,15 +6,15 @@
 # Student: William Chiu, 1006998493, chiuwil3, will.chiu@mail.utoronto.ca
 #
 # Bitmap Display Configuration:
-# - Unit width in pixels: 16
-# - Unit height in pixels: 16
-# - Display width in pixels: 1024
-# - Display height in pixels: 1024 
+# - Unit width in pixels: 8
+# - Unit height in pixels: 8
+# - Display width in pixels: 512
+# - Display height in pixels: 512 
 # - Base Address for Display: 0x10008000 ($gp)
 #
 # Which milestones have been reached in this submission?
 # (See the assignment handout for descriptions of the milestones)
-# - Milestone 1/2/3 (choose the one the applies)
+# - Milestone 2/3 (choose the one the applies)
 #
 # Which approved features have been implemented for milestone 3?
 # (See the assignment handout for the list of additional features)
