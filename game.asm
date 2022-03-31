@@ -220,7 +220,7 @@ checkLeftEND:
 # Given colour, and x/y values, check if specified colour is on the left of the player
 checkRight:
 	move $t1, $a1			# Store colour
-	addi $t2, $a2, 2			# Store x
+	addi $t2, $a2, 3			# Store x
 	move $t3, $a3			# Store y
 	addi $v0, $zero, 0		# Set $v0 to 0				
 							
@@ -243,6 +243,7 @@ checkRightEND:
 	addi $v0, $zero, 1		# Set $v0 to 1
 	jr $ra																															
 													
+	
 	
 # This function checks for key pressed (assuming a key was pressed)	
 checkKeyPressed:	
@@ -269,7 +270,14 @@ checkMoveUp:
 moveLeft:
 	addi $t5, $zero, 0		# Store left boundary
 	ble $s1, $t5, jumpKeyPressed	# If x = 0, don't update x
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkLeft
+	# Else go up one
 	addi $s7, $zero, 0		# Set drawCheck to 0
+	bgtz $v0, jumpKeyPressed 	# If return greater than 0, don't go up
 	addi $s1, $s1, -2		# Move x-value left 1
 	j jumpKeyPressed
 	
@@ -278,7 +286,14 @@ moveRight:
 	addi $t6, $zero, 60		# Store right boundary
 	beq $s1, $t6, altMoveRight	# Move right 1 if this exact x value
 	bge $s1, $t5, jumpKeyPressed	# If x => 61, don't update x
+	# Check for on platform
+	li $a1, BROWN			# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkRight
+	# Else go up one
 	addi $s7, $zero, 0		# Set drawCheck to 0
+	bgtz $v0, jumpKeyPressed 	# If return greater than 0, don't go up
 	addi $s1, $s1, 2			# Move x-value right 1
 	j jumpKeyPressed
 altMoveRight:
@@ -300,7 +315,7 @@ moveUp:
 	addi $s5, $s5, 1			# Increment jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s6, $zero, 1		# Set inAir to 1
-	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
+	bgtz $v0, jumpKeyPressed		# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
 lastMoveUp:
@@ -315,7 +330,7 @@ lastMoveUp:
 	addi $s5, $zero, 0		# Reset jump counter
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s6, $zero, 0		# Set inAir to 0
-	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
+	bgtz $v0, jumpKeyPressed 	# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
 # Alternate moveUp for the case where mid jump but you still need to check for key press	
@@ -708,6 +723,12 @@ drawStart:
 	addi $a1, $zero, 59		# $a1 stores start index
 	addi $a2, $zero, 63		# $a2 stores end index
 	jal drawLine
+	# Platform 5
+	li $a0, BROWN			# $a0 stores the colour code
+	addi $a3, $zero, 33 		# $a3 stores y-value
+	addi $a1, $zero, 21		# $a1 stores start index
+	addi $a2, $zero, 27		# $a2 stores end index
+	jal drawLine
 	# Platform 7
 	li $a0, BROWN			# $a0 stores the colour code
 	addi $a3, $zero, 27 		# $a3 stores y-value
@@ -770,12 +791,6 @@ drawStart:
 
 
 	#---------------------------------Draw Stopped Platforms---------------------------
-	# Platform 5
-	li $a0, BROWN			# $a0 stores the colour code
-	addi $a3, $zero, 33 		# $a3 stores y-value
-	addi $a1, $zero, 20		# $a1 stores start index
-	addi $a2, $zero, 27		# $a2 stores end index
-	jal drawLine
 	# Platform 6
 	li $a0, STOPPEDORANGE		# $a0 stores the colour code
 	addi $a3, $zero, 33 		# $a3 stores y-value
