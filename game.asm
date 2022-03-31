@@ -137,7 +137,6 @@ END:
 
 		
 # Given colour, and x/y values, check if specified colour is under the player
-# $t9 = Return value (if > 0 then collision found)
 checkBottom:
 	move $t1, $a1			# Store colour
 	move $t2, $a2			# Store x
@@ -154,7 +153,7 @@ checkBottom:
 	add $t6, $t0, $t5		# $t6 = base address + address of pixel
 	lw $t7, 0($t6)			# Load colour address of pixel into $t7
 	beq $t7, $t1, checkBottomEND	# If colour found, increment and end
-	addi $t5, $t5, 8			# Else, go right by two
+	addi $t5, $t5, 4			# Else, go right by two
 	add $t6, $t0, $t5		# $t6 = base address + address of pixel
 	lw $t7, 0($t6)			# Load colour address of pixel into $t7
 	beq $t7, $t1, checkBottomEND	# If colour found, increment and end
@@ -165,7 +164,6 @@ checkBottomEND:
 	
 	
 # Given colour, and x/y values, check if specified colour is above the player
-# $t9 = Return value (if > 0 then collision found)
 checkTop:
 	move $t1, $a1			# Store colour
 	move $t2, $a2			# Store x
@@ -182,15 +180,69 @@ checkTop:
 	add $t6, $t0, $t5		# $t6 = base address + address of pixel
 	lw $t7, 0($t6)			# Load colour address of pixel into $t7
 	beq $t7, $t1, checkTopEND	# If colour found, increment and end
-	addi $t5, $t5, 8			# Else, go right by two
+	addi $t5, $t5, 4			# Else, go right by two
 	add $t6, $t0, $t5		# $t6 = base address + address of pixel
 	lw $t7, 0($t6)			# Load colour address of pixel into $t7
 	beq $t7, $t1, checkTopEND	# If colour found, increment and end
 	jr $ra				# Colour not found, return 0
 checkTopEND:
 	addi $v0, $zero, 1		# Set $v0 to 1
-	jr $ra				
+	jr $ra		
+	
 		
+# Given colour, and x/y values, check if specified colour is on the left of the player
+checkLeft:
+	move $t1, $a1			# Store colour
+	addi $t2, $a2, -1		# Store x
+	move $t3, $a3			# Store y
+	addi $v0, $zero, 0		# Set $v0 to 0				
+							
+	sll $t4, $t3, 8			# Multiply y by 256
+	sll $t2, $t2, 2			# Nultiply x by 4
+	add $t5, $t4, $t2		# y*256 + x
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, ($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkLeftEND	# If colour found, increment and end
+	addi $t5, $t5, 256		# Else, go down by one
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkLeftEND	# If colour found, increment and end
+	addi $t5, $t5, 256		# Else, go down by two
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkTopEND	# If colour found, increment and end
+	jr $ra				# Colour not found, return 0
+checkLeftEND:								
+	addi $v0, $zero, 1		# Set $v0 to 1
+	jr $ra
+	
+	
+# Given colour, and x/y values, check if specified colour is on the left of the player
+checkRight:
+	move $t1, $a1			# Store colour
+	addi $t2, $a2, 2			# Store x
+	move $t3, $a3			# Store y
+	addi $v0, $zero, 0		# Set $v0 to 0				
+							
+	sll $t4, $t3, 8			# Multiply y by 256
+	sll $t2, $t2, 2			# Nultiply x by 4
+	add $t5, $t4, $t2		# y*256 + x
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, ($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkRightEND	# If colour found, increment and end
+	addi $t5, $t5, 256		# Else, go down by one
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkRightEND	# If colour found, increment and end
+	addi $t5, $t5, 256		# Else, go down by two
+	add $t6, $t0, $t5		# $t6 = base address + address of pixel
+	lw $t7, 0($t6)			# Load colour address of pixel into $t7
+	beq $t7, $t1, checkRightEND	# If colour found, increment and end
+	jr $ra				# Colour not found, return 0
+checkRightEND:								
+	addi $v0, $zero, 1		# Set $v0 to 1
+	jr $ra																															
+													
 	
 # This function checks for key pressed (assuming a key was pressed)	
 checkKeyPressed:	
