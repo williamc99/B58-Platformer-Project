@@ -63,8 +63,7 @@
 .eqv 	waterLine1 55
 .eqv	waterLine2 54
 .eqv	waitDelay 40
-.eqv 	maxJumpCount 8
-
+.eqv 	maxJumpCount 10
 
 .data
 .text
@@ -79,7 +78,7 @@ initialize:
 	addi $s6, $zero, 0		# Store inAir value (0 = not mid-jump, 1 = mid-jump)
 	addi $s7, $zero, 0		# Store drawCheck (0 = draw, 1 = don't draw character)
 	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
-	
+		
 	jal drawStart			# Draw the screen
 	
 	
@@ -102,7 +101,9 @@ jumpLookKey:
 jumpKeyPressed:
 	# Redraw Character
 	addi $t5, $zero, 1		
-	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacter	
+	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacte
+		
+redrawCharacter:
 	# Erase object with old coordinates
 	move $a1, $s3			# Set old x coordinate of character
 	move $a3, $s4			# Set old y coordinate of character
@@ -118,7 +119,7 @@ noUpdate:
 	li $a0, waitDelay 		# Sleep 
 	syscall
 	j main				# Loop main
-	
+
 
 
 END:	
@@ -166,10 +167,7 @@ checkBottomEND:
 		
 	
 # This function checks for key pressed (assuming a key was pressed)	
-checkKeyPressed:
-	move $s3, $s1			# Save old x value
-	move $s4, $s2			# Save old y value
-	
+checkKeyPressed:	
 	lw $t2, 4($t9) 			# Get key value of press
 	# Check if left
 	beq $t2, 0x61, moveLeft		# ASCII code of 'a' is 0x61 
@@ -192,14 +190,20 @@ checkMoveUp:
 		
 moveLeft:
 	addi $t5, $zero, 0		# Store left boundary
-	beq $s1, $t5, jumpKeyPressed	# If x = 0, don't update x
+	ble $s1, $t5, jumpKeyPressed	# If x = 0, don't update x
 	addi $s7, $zero, 0		# Set drawCheck to 0
-	addi $s1, $s1, -1		# Move x-value left 1
+	addi $s1, $s1, -2		# Move x-value left 1
 	j jumpKeyPressed
 	
 moveRight:
 	addi $t5, $zero, 61		# Store right boundary
-	beq $s1, $t5, jumpKeyPressed	# If x = 61, don't update x
+	addi $t6, $zero, 60		# Store right boundary
+	beq $s1, $t6, altMoveRight	# Move right 1 if this exact x value
+	bge $s1, $t5, jumpKeyPressed	# If x => 61, don't update x
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s1, $s1, 2			# Move x-value right 1
+	j jumpKeyPressed
+altMoveRight:
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	addi $s1, $s1, 1			# Move x-value right 1
 	j jumpKeyPressed
@@ -1008,19 +1012,18 @@ eraseCharacter:
 	addi $a2, $a1, 2 		# Create and store the end index
 	move $t7, $a1			# Store start index
 	move $t8, $a2			# Store end index
-	move $t9, $a3			# Store y-value
 	# Erase Hair
-	li $a0, PPBLUE1			# Load colour
+	li $a0, BLACK			# Load colour
 	jal drawLine
 	# Erase Eyes and Nose
 	move $a1, $t7			# Restore x-value
 	move $a2, $t8			# Resore end index
-	addi $a3, $t9, 1			# Update y index
+	addi $a3, $a3, 1			# Update y index
 	jal drawLine
 	# Erase Face
 	move $a1, $t7			# Restore x-value
 	move $a2, $t8			# Resore end index
-	addi $a3, $t9, 2			# Update y index
+	addi $a3, $a3, 1			# Update y index
 	jal drawLine
 	# Restore $ra
 	lw $ra, 0($sp)			# Restore $ra
