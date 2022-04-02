@@ -100,7 +100,7 @@ jumpLookKey:
 	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
 		
 jumpKeyPressed:
-	
+	# Check coin collisions
 	# Check coin 1
 	addi $a0, $zero, 9		# Set arguments for checking coin 1
 	addi $a2, $zero, 38
@@ -410,22 +410,22 @@ restartGame:
 
 
 
-#####---------------------------------COLLISION FUNCTIONS------------------------------#####
+#####---------------------------------COIN COLLISION FUNCTIONS--------------------------#####
 # Check if coin was collected
 # Store x1, x2 in $a0, $a1
 # Store y1, y2 in $a2, $a3
 checkCoin:
 	addi $a1, $a0, 9			# Add 9 for the range of x
 	addi $a3, $a2, 9			# Add 9 for the range of y
-	bge $s1, $a0, xcheck		# Check if x >= x1
+	bge $s1, $a0, xCoinCheck		# Check if x >= x1
 	jr $ra
-xcheck:
-	ble $s1, $a1, ycheck		# Check if x <= x2
+xCoinCheck:
+	ble $s1, $a1, yCoinCheck		# Check if x <= x2
 	jr $ra
-ycheck: 
-	bge $s2, $a2, ycheck2		# Check if y <= y1
+yCoinCheck: 
+	bge $s2, $a2, yCoinCheck2	# Check if y <= y1
 	jr $ra	
-ycheck2:
+yCoinCheck2:
 	ble $s2, $a3, updateCoin		# Check if y >= y2
 	jr $ra 
 	
@@ -442,14 +442,61 @@ updateCoin:
 	move $a3, $t3			# Store arguments
 	jal eraseCoin			# Call function and remove coin
 	
-	#addi $s0, $s0, 1			# Increment score by 1 (100)
+	#addi $s0, $s0, 1		# Increment score by 1 (100)
 	#addi $a0, $zero, 1		# Pass 1 to argument for updateScore
 	#jal updateScore
 		
+	jal eraseScore
+	
 	# Restore $ra
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
+	
+	
+updateScore:
+	
+	
+	
+
+eraseScore:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	# Row 1
+	li $a0, BLACK			# $a0 stores the white colour code
+	addi $a1, $zero, 41		# $a1 stores start index
+	addi $a2, $zero, 44		# $a2 stores length
+	addi $a3, $zero, 58		# $a3 stores y-value		
+	jal drawLine
+	# Row 2
+	addi $a1, $zero, 41		# $a1 stores start index
+	addi $a2, $zero, 44		# $a2 stores length
+	addi $a3, $zero, 59		# $a3 stores y-value		
+	jal drawLine
+	# Row 3
+	addi $a1, $zero, 41		# $a1 stores start index
+	addi $a2, $zero, 44		# $a2 stores length
+	addi $a3, $zero, 60		# $a3 stores y-value		
+	jal drawLine
+	# Row 4
+	addi $a1, $zero, 41		# $a1 stores start index
+	addi $a2, $zero, 44		# $a2 stores length
+	addi $a3, $zero, 61		# $a3 stores y-value		
+	jal drawLine
+	# Row 5
+	addi $a1, $zero, 41		# $a1 stores start index
+	addi $a2, $zero, 44		# $a2 stores length
+	addi $a3, $zero, 62		# $a3 stores y-value		
+	jal drawLine
+	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra				# Jump back to line that called us
+	
+	
 	
 
 
