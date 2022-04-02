@@ -101,20 +101,32 @@ jumpLookKey:
 		
 jumpKeyPressed:
 	# Check coin collisions
+checkCoin1:
 	# Check coin 1
+	li $t1, COINBLUE			# First check if coin 1 is already removed
+	lw $t2, 10808($t0)		# Get the colour of the previously white pixel in coin 1
+	bne $t2, COINBLUE, checkCoin2	# If already erased, go and check for coin 2
 	addi $a0, $zero, 9		# Set arguments for checking coin 1
 	addi $a2, $zero, 38
 	jal checkCoin			# Check if coin was collided with
+checkCoin2:
 	# Check coin 2
+	li $t1, COINBLUE			# First check if coin 1 is already removed
+	lw $t2, 7060($t0)		# Get the colour of the previously white pixel in coin 2
+	bne $t2, COINBLUE, checkCoin3	# If already erased, go and check for coin 3
 	addi $a0, $zero, 32		# Set arguments for checking coin 2
 	addi $a2, $zero, 23
 	jal checkCoin			# Check if coin was collided with
+checkCoin3:
 	# Check coin 3
+	li $t1, BLACK			# First check if coin 1 is already removed
+	lw $t2, 1980($t0)		# Get the colour of the previously white pixel in coin 3
+	bne $t2, COINBLUE, skipCoinChecks	# If already erased, skip coin checks
 	addi $a0, $zero, 42		# Set arguments for checking coin 3
 	addi $a2, $zero, 3
 	jal checkCoin			# Check if coin was collided with
-
-
+	
+skipCoinChecks:				# Else, skip the coin checks
 	# Redraw Character
 	addi $t5, $zero, 1		
 	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacte
@@ -135,7 +147,6 @@ noUpdate:
 	li $a0, waitDelay 		# Sleep 
 	syscall
 	j main				# Loop main
-
 
 
 END:	
@@ -432,32 +443,44 @@ yCoinCheck2:
 
 # Erase coin and update score
 updateCoin:
-	# Store $ra	
-	addi $sp, $sp, -4		# Update stack address
-	sw $ra, 0($sp)			# Push $ra to the stack
-	
 	addi $t2, $a0, 3			# Add 3 to x and store in temp register
 	addi $t3, $a2, 3			# Add 3 to y and store in temp register
 	move $a2, $t2			# Store arguments
 	move $a3, $t3			# Store arguments
+	
+	addi $s0, $s0, 1			# Increment score by 1 (100)
 	jal eraseCoin			# Call function and remove coin
-	
-	#addi $s0, $s0, 1		# Increment score by 1 (100)
-	#addi $a0, $zero, 1		# Pass 1 to argument for updateScore
-	#jal updateScore
-		
-	jal eraseScore
-	
-	# Restore $ra
-	lw $ra, 0($sp)			# Restore $ra
-	addi $sp, $sp, 4			# Prepare stack address
-	jr $ra	
+	jal updateScore			# Call function and update score
+	j skipCoinChecks
 	
 	
 updateScore:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
 	
+	jal eraseScore		
+	addi $t1, $zero, 1 		# Store all the different score values
+	addi $t2, $zero, 2
+	addi $t3, $zero, 3
+	addi $t4, $zero, 4 	
+	addi $t5, $zero, 5 	
+	addi $t6, $zero, 6
 	
+	beq $s0, $t1, drawNum1		# Check what the score is 
+	beq $s0, $t2, drawNum2
+	beq $s0, $t3, drawNum3
+	#beq $s0, $t4, drawNum4
+	#beq $s0, $t5, drawNum5
+	#beq $s0, $t6, drawNum6
 	
+
+jumpUpdateScore:				# Jump back from the draw num functions
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra				# Jump back to line that called us
+
 
 eraseScore:
 	# Store $ra	
@@ -497,7 +520,35 @@ eraseScore:
 	jr $ra				# Jump back to line that called us
 	
 	
+# Draw score value functions
+drawNum1:
+	li $t1, WHITE			# Load white
+	sw $t1, 15020($t0)		# Paint pixel
+	sw $t1, 15272($t0)		# Paint pixel
+	sw $t1, 15276($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15788($t0)		# Paint pixel
+	sw $t1, 16044($t0)		# Paint pixel
+	sw $t1, 16040($t0)		# Paint pixel
+	sw $t1, 16048($t0)		# Paint pixel
+	j jumpUpdateScore
 	
+drawNum2:
+	li $t1, WHITE			# Load white
+	sw $t1, 15016($t0)		# Paint pixel
+	sw $t1, 15020($t0)		# Paint pixel
+	sw $t1, 15268($t0)		# Paint pixel
+	sw $t1, 15280($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15784($t0)		# Paint pixel
+	sw $t1, 16036($t0)		# Paint pixel
+	sw $t1, 16040($t0)		# Paint pixel
+	sw $t1, 16044($t0)		# Paint pixel
+	sw $t1, 16048($t0)		# Paint pixel
+	j jumpUpdateScore
+
+
+
 
 
 #####-------------------------------------DRAW BOARD----------------------------------#####
