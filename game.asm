@@ -415,8 +415,10 @@ noJumper:
 restartGame:
 	# For now, this function will prematurely exit
 	# Later on, change this to restart the game
-	j END
-
+	#j END
+	addi $s0, $s0, 1
+	jal updateScore
+	j jumpKeyPressed
 
 
 
@@ -453,7 +455,8 @@ updateCoin:
 	jal updateScore			# Call function and update score
 	j skipCoinChecks
 	
-	
+
+# Erase previous score and update with new one	
 updateScore:
 	# Store $ra	
 	addi $sp, $sp, -4		# Update stack address
@@ -466,15 +469,16 @@ updateScore:
 	addi $t4, $zero, 4 	
 	addi $t5, $zero, 5 	
 	addi $t6, $zero, 6
+	addi $t7, $zero, 7
 	
 	beq $s0, $t1, drawNum1		# Check what the score is 
 	beq $s0, $t2, drawNum2
 	beq $s0, $t3, drawNum3
-	#beq $s0, $t4, drawNum4
-	#beq $s0, $t5, drawNum5
-	#beq $s0, $t6, drawNum6
+	beq $s0, $t4, drawNum4
+	beq $s0, $t5, drawNum5
+	beq $s0, $t6, drawNum6
+	beq $s0, $t7, drawNum7
 	
-
 jumpUpdateScore:				# Jump back from the draw num functions
 	# Restore $ra
 	lw $ra, 0($sp)			# Restore $ra
@@ -482,6 +486,7 @@ jumpUpdateScore:				# Jump back from the draw num functions
 	jr $ra				# Jump back to line that called us
 
 
+# Function that erases score
 eraseScore:
 	# Store $ra	
 	addi $sp, $sp, -4		# Update stack address
@@ -545,6 +550,71 @@ drawNum2:
 	sw $t1, 16040($t0)		# Paint pixel
 	sw $t1, 16044($t0)		# Paint pixel
 	sw $t1, 16048($t0)		# Paint pixel
+	j jumpUpdateScore
+
+drawNum3:
+	li $t1, WHITE			# Load white
+	sw $t1, 15016($t0)		# Paint pixel
+	sw $t1, 15020($t0)		# Paint pixel
+	sw $t1, 15268($t0)		# Paint pixel
+	sw $t1, 15280($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15792($t0)		# Paint pixel
+	sw $t1, 15780($t0)		# Paint pixel
+	sw $t1, 16040($t0)		# Paint pixel
+	sw $t1, 16044($t0)		# Paint pixel
+	j jumpUpdateScore
+
+drawNum4:
+	li $t1, WHITE			# Load white
+	sw $t1, 15012($t0)		# Paint pixel
+	sw $t1, 15268($t0)		# Paint pixel
+	sw $t1, 15528($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15024($t0)		# Paint pixel
+	sw $t1, 15280($t0)		# Paint pixel
+	sw $t1, 15536($t0)		# Paint pixel
+	sw $t1, 15792($t0)		# Paint pixel
+	sw $t1, 16048($t0)		# Paint pixel
+	j jumpUpdateScore
+
+drawNum5:
+	li $t1, WHITE			# Load white
+	sw $t1, 15016($t0)		# Paint pixel
+	sw $t1, 15020($t0)		# Paint pixel
+	sw $t1, 15024($t0)		# Paint pixel
+	sw $t1, 15272($t0)		# Paint pixel
+	sw $t1, 15528($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15536($t0)		# Paint pixel
+	sw $t1, 15792($t0)		# Paint pixel
+	sw $t1, 16044($t0)		# Paint pixel
+	sw $t1, 16040($t0)		# Paint pixel
+	j jumpUpdateScore
+	
+drawNum6:
+	li $t1, WHITE			# Load white
+	sw $t1, 15016($t0)		# Paint pixel
+	sw $t1, 15020($t0)		# Paint pixel
+	sw $t1, 15268($t0)		# Paint pixel
+	sw $t1, 15524($t0)		# Paint pixel
+	sw $t1, 15528($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15780($t0)		# Paint pixel
+	sw $t1, 15792($t0)		# Paint pixel
+	sw $t1, 16040($t0)		# Paint pixel
+	sw $t1, 16044($t0)		# Paint pixel
+	j jumpUpdateScore
+
+drawNum7:
+	li $t1, WHITE			# Load white
+	sw $t1, 15012($t0)		# Paint pixel
+	sw $t1, 15016($t0)		# Paint pixel
+	sw $t1, 15020($t0)		# Paint pixel
+	sw $t1, 15280($t0)		# Paint pixel
+	sw $t1, 15532($t0)		# Paint pixel
+	sw $t1, 15784($t0)		# Paint pixel
+	sw $t1, 16040($t0)		# Paint pixel
 	j jumpUpdateScore
 
 
