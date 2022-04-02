@@ -63,13 +63,14 @@
 .eqv 	waterLine1 55
 .eqv	waterLine2 54
 .eqv	waitDelay 40
-.eqv 	maxJumpCount 10
+.eqv 	maxJumpCount 12
 
 .data
 .text
 
 #---------------------------------Initialize Game--------------------------------
 initialize:
+	addi $s0, $zero, 0		# Store player score
 	addi $s1, $zero, 2		# Store player x-value
 	addi $s2, $zero, 46		# Store player y-value
 	addi $s3, $zero, 2		# Store player old x-value
@@ -99,6 +100,21 @@ jumpLookKey:
 	beq $t8, 1, checkKeyPressed	# If key pressed happened, call function
 		
 jumpKeyPressed:
+	
+	# Check coin 1
+	addi $a0, $zero, 9		# Set arguments for checking coin 1
+	addi $a2, $zero, 38
+	jal checkCoin			# Check if coin was collided with
+	# Check coin 2
+	addi $a0, $zero, 32		# Set arguments for checking coin 2
+	addi $a2, $zero, 23
+	jal checkCoin			# Check if coin was collided with
+	# Check coin 3
+	addi $a0, $zero, 42		# Set arguments for checking coin 3
+	addi $a2, $zero, 3
+	jal checkCoin			# Check if coin was collided with
+
+
 	# Redraw Character
 	addi $t5, $zero, 1		
 	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacte
@@ -394,8 +410,47 @@ restartGame:
 
 
 
+#####---------------------------------COLLISION FUNCTIONS------------------------------#####
+# Check if coin was collected
+# Store x1, x2 in $a0, $a1
+# Store y1, y2 in $a2, $a3
+checkCoin:
+	addi $a1, $a0, 9			# Add 9 for the range of x
+	addi $a3, $a2, 9			# Add 9 for the range of y
+	bge $s1, $a0, xcheck		# Check if x >= x1
+	jr $ra
+xcheck:
+	ble $s1, $a1, ycheck		# Check if x <= x2
+	jr $ra
+ycheck: 
+	bge $s2, $a2, ycheck2		# Check if y <= y1
+	jr $ra	
+ycheck2:
+	ble $s2, $a3, updateCoin		# Check if y >= y2
+	jr $ra 
+	
 
-
+# Erase coin and update score
+updateCoin:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	addi $t2, $a0, 3			# Add 3 to x and store in temp register
+	addi $t3, $a2, 3			# Add 3 to y and store in temp register
+	move $a2, $t2			# Store arguments
+	move $a3, $t3			# Store arguments
+	jal eraseCoin			# Call function and remove coin
+	
+	#addi $s0, $s0, 1			# Increment score by 1 (100)
+	#addi $a0, $zero, 1		# Pass 1 to argument for updateScore
+	#jal updateScore
+		
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+	
 
 
 #####-------------------------------------DRAW BOARD----------------------------------#####
@@ -810,29 +865,18 @@ drawStart:
 	
 	#---------------------------------Draw Coins---------------------------------------
 	# Coins are numbered from lowest to highest, left to right
+	
 	# Coin 1
-	addi $a2, $zero, 48		# Set x value
-	addi $a3, $zero, 44		# Set y value
-	jal drawCoin
-	# Coin 2
 	addi $a2, $zero, 12		# Set x value
 	addi $a3, $zero, 41		# Set y value
 	jal drawCoin
-	# Coin 3
+	# Coin 2
 	addi $a2, $zero, 35		# Set x value
 	addi $a3, $zero, 26		# Set y value
 	jal drawCoin
-	# Coin 4
-	addi $a2, $zero, 60		# Set x value
-	addi $a3, $zero, 22		# Set y value
-	jal drawCoin
-	# Coin 5
+	# Coin 3
 	addi $a2, $zero, 45		# Set x value
 	addi $a3, $zero, 6		# Set y value
-	jal drawCoin
-	# Coin 6
-	addi $a2, $zero, 15		# Set x value
-	addi $a3, $zero, 1		# Set y value
 	jal drawCoin
 	
 	
@@ -867,13 +911,6 @@ drawStart:
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
-
-
-
-
-
-
-
 
 
 
