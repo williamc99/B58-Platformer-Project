@@ -66,6 +66,8 @@
 .eqv 	maxJumpCount 12
 
 .data
+A: 	.word 	2, 46, 0, 0		# Stores {oldx, oldy, platf6check, platform10check}
+B: 	.word 	2, 46, 0, 0, 0, 0, 0, 0	# Stores {plat6x, plat6y, plat10x, plat10y, bluex, bluey, greenx, greeny}
 .text
 
 #---------------------------------Initialize Game--------------------------------
@@ -73,21 +75,20 @@ initialize:
 	addi $s0, $zero, 0		# Store player score
 	addi $s1, $zero, 2		# Store player x-value
 	addi $s2, $zero, 46		# Store player y-value
-	addi $s3, $zero, 2		# Store player old x-value
-	addi $s4, $zero, 46 		# Store player old y-value
+	la   $s3, A			# Store array A into $s3
+	la   $s4, B 			# Store array B into $s4
 	addi $s5, $zero, 0		# Store player jump counter
 	addi $s6, $zero, 0		# Store inAir value (0 = not mid-jump, 1 = mid-jump)
 	addi $s7, $zero, 0		# Store drawCheck (0 = draw, 1 = don't draw character)
-	li $t0, BASE_ADDRESS		# $t0 stores the base address for display
-		
+	li $t0, BASE_ADDRESS		# $t0 stores the base address for display	
 	jal drawStart			# Draw the screen
 	
 	
 #---------------------------------Main Loop--------------------------------------
 main:	
 	addi $s7, $zero, 1		# Set drawCheck to 1 ( don't draw)
-	move $s3, $s1			# Save old x value
-	move $s4, $s2			# Save old y value
+	sw $s1, 0($s3)			# Save old x value
+	sw $s2, 4($s3)			# Save old y value
 	
 	# Check for mid-jump/gravity
 	beq $s6, $zero, moveGravity	# If not mid jump (inAir = 0), check gravity
@@ -133,8 +134,11 @@ skipCoinChecks:				# Else, skip the coin checks
 		
 redrawCharacter:
 	# Erase object with old coordinates
-	move $a1, $s3			# Set old x coordinate of character
-	move $a3, $s4			# Set old y coordinate of character
+	lw $a1, 0($s3)			# Get old x coordinate of character from array
+	lw $a3, 4($s3)			# Get old y coordinate of character from array
+	
+	#move $a1, $t1			# Set old x coordinate of character
+	#move $a3, $t2			# Set old y coordinate of character
 	jal eraseCharacter		# Erase character
 	# Redraw character
 	move $a1, $s1			# Set new x coordinate of character
@@ -332,7 +336,7 @@ moveUp:
 	addi $t6, $zero, maxJumpCount	# Store max jump counter
 	beq $s5, $t6, lastMoveUp 	# If jump counter == maxJumpCount
 	addi $t5, $zero, 0		# Store top boundary
-	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	beq $s2, $t5, moveUpBoundary	# If y = 0, don't update y
 	# Check for on platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
@@ -347,7 +351,7 @@ moveUp:
 	j jumpKeyPressed
 lastMoveUp:
 	addi $t5, $zero, 0		# Store top boundary
-	beq $s2, $t5, jumpKeyPressed	# If y = 0, don't update y
+	beq $s2, $t5, moveUpBoundary	# If y = 0, don't update y
 	# Check for on platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
@@ -360,12 +364,17 @@ lastMoveUp:
 	bgtz $v0, jumpKeyPressed 	# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
+moveUpBoundary:
+	addi $s5, $zero, 0		# Reset jump counter
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s6, $zero, 0		# Set inAir to 0
+	j jumpKeyPressed
 # Alternate moveUp for the case where mid jump but you still need to check for key press	
 altMoveUp: 
 	addi $t6, $zero,  maxJumpCount	# Store max jump counter
 	beq $s5, $t6, altLastMoveUp 	# If jump counter == maxJumpCount
 	addi $t5, $zero, 0		# Store top boundary
-	beq $s2, $t5, jumpLookKey	# If y = 0, don't update y
+	beq $s2, $t5, altMoveUpBoundary	# If y = 0, don't update y
 	addi $s5, $s5, 1			# Increment jump counter
 	# Check for on platform
 	li $a1, BROWN			# Load platform colour
@@ -380,7 +389,7 @@ altMoveUp:
 	j jumpLookKey
 altLastMoveUp:
 	addi $t5, $zero, 0		# Store top boundary
-	beq $s2, $t5, jumpLookKey	# If y = 0, don't update y
+	beq $s2, $t5, altMoveUpBoundary	# If y = 0, don't update y
 	# Check for on platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
@@ -392,6 +401,11 @@ altLastMoveUp:
 	addi $s6, $zero, 0		# Set inAir to 0
 	bgtz $v0, jumpLookKey 		# If return greater than 0, don't go up
 	addi $s2, $s2, -1		# Move y-value up 1
+	j jumpLookKey
+altMoveUpBoundary:
+	addi $s5, $zero, 0		# Reset jump counter
+	addi $s7, $zero, 0		# Set drawCheck to 0
+	addi $s6, $zero, 0		# Set inAir to 0
 	j jumpLookKey
 	
 moveGravity: 
@@ -973,6 +987,12 @@ drawStart:
 	addi $a1, $zero, 25		# $a1 stores start index
 	addi $a2, $zero, 35		# $a2 stores end index
 	jal drawLine
+	# Platform 12
+	li $a0, BROWN			# $a0 stores the colour code
+	addi $a3, $zero, 11 		# $a3 stores y-value
+	addi $a1, $zero, 42		# $a1 stores start index
+	addi $a2, $zero, 51		# $a2 stores end index
+	jal drawLine
 	# Platform 13
 	li $a0, BROWN			# $a0 stores the colour code
 	addi $a3, $zero, 6 		# $a3 stores y-value
@@ -1022,12 +1042,6 @@ drawStart:
 	addi $a3, $zero, 17 		# $a3 stores y-value
 	addi $a1, $zero, 10		# $a1 stores start index
 	addi $a2, $zero, 16		# $a2 stores end index
-	jal drawLine
-	# Platform 12
-	li $a0, STOPPEDORANGE		# $a0 stores the colour code
-	addi $a3, $zero, 11 		# $a3 stores y-value
-	addi $a1, $zero, 42		# $a1 stores start index
-	addi $a2, $zero, 51		# $a2 stores end index
 	jal drawLine
 	
 	
