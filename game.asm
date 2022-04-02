@@ -413,12 +413,12 @@ noJumper:
 	j jumpLookKey			# Return to main
 	
 restartGame:
-	# For now, this function will prematurely exit
-	# Later on, change this to restart the game
 	#j END
-	addi $s0, $s0, 1
-	jal updateScore
-	j jumpKeyPressed
+	#addi $s0, $s0, 1
+	#jal updateScore
+	jal clearScreen
+	jal clearRegisters
+	j initialize
 
 
 
@@ -1440,7 +1440,38 @@ eraseCharacter:
 																																																																				
 	
 #----------------------------------------Other Functions-------------------------------		
+
+# This function clears the screen
+clearScreen:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
 	
+	addi $t9, $zero, 63		# Store the max y value
+	addi $t7, $zero, 0		# $t7 = index
+	
+clearScreenLoop:
+	bgt $t7, $t9, clearScreenEND	# Loop until index > 63
+	# Draw black line
+	li $a0, BLACK			# $a0 stores colour code
+	addi $a1, $zero, 0		# $a1 stores start index
+	addi $a2, $zero, 63		# $a2 stores length	
+	addi $a3, $t7, 0			# $a3 stores y-value	
+	jal drawLine
+	addi $t7, $t7, 1			# Increment index by 1
+	j clearScreenLoop		# Loop
+
+clearScreenEND:
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+
+
+
+
+
+# This function clears the registers
 clearRegisters:
 	# Store $ra	
 	addi $sp, $sp, -4		# Update stack address
@@ -1455,6 +1486,14 @@ clearRegisters:
 	move $t7, $0			# Clear register
 	move $t8, $0			# Clear register
 	move $t9, $0			# Clear register
+	move $s0, $0			# Clear register
+	move $s1, $0			# Clear register
+	move $s2, $0			# Clear register
+	move $s3, $0			# Clear register
+	move $s4, $0			# Clear register
+	move $s5, $0			# Clear register
+	move $s6, $0			# Clear register
+	move $s7, $0			# Clear register
 	
 	# Restore $ra
 	lw $ra, 0($sp)			# Restore $ra
@@ -1463,9 +1502,6 @@ clearRegisters:
 
 	
 	
-
-
-
 
 
 
