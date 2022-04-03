@@ -128,6 +128,16 @@ checkCoin3:
 	jal checkCoin			# Check if coin was collided with
 	
 skipCoinChecks:				# Else, skip the coin checks
+
+checkPPBlue:
+	# Check for blue pickup
+	# If position in array is 0 skip
+	jal checkPickupBlue
+	
+	
+	
+skipPPChecks:	
+
 	# Redraw Character
 	addi $t5, $zero, 1		
 	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacte
@@ -159,6 +169,36 @@ END:
 
 
 
+
+#####---------------------------------PICKUP COLLISION FUNCTIONS-----------------------#####
+# Check if blue powerip was picked up
+checkPickupBlue:
+	addi $t1, $zero, 58		# Start x
+	addi $t2, $zero, 63		# End x
+	addi $t3, $zero, 31		# Start y
+	addi $t4, $zero, 39		# End y
+	bge $s1, $s1, xBlueCheck		# Check if x >= x1
+	jr $ra
+xBlueCheck:
+	ble $s1, $a2, yBlueCheck		# Check if x <= x2
+	jr $ra
+yBlueCheck:
+	bge $s2, $t3, yBlueCheck2	# Check if y <= y1
+	jr $ra	
+yBlueCheck2:
+	ble $s2, $t4, activateBlue	# Check if y >= y2
+	jr $ra 
+
+
+# The blue pickup will instantly give needed score to win (+300 score)
+activateBlue:
+	# Increment score by 300
+	addi $s0, $s0, 3			# Increment the score by 3 (300)
+	# Erase the pickup
+	# Set pickup check for blue to 0
+	# Return
+	j skipPPChecks
+	
 
 
 
@@ -1476,6 +1516,33 @@ clearScreenLoop:
 	j clearScreenLoop		# Loop
 
 clearScreenEND:
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+	
+	
+# This function clears the screen up until the score text
+clearPartialScreen:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	addi $t9, $zero, 56		# Store the max y value
+	addi $t7, $zero, 0		# $t7 = index
+	
+clearPartialScreenLoop:
+	bgt $t7, $t9, clearPartialScreenEND	# Loop until index > 63
+	# Draw black line
+	li $a0, BLACK			# $a0 stores colour code
+	addi $a1, $zero, 0		# $a1 stores start index
+	addi $a2, $zero, 63		# $a2 stores length	
+	addi $a3, $t7, 0			# $a3 stores y-value	
+	jal drawLine
+	addi $t7, $t7, 1			# Increment index by 1
+	j clearPartialScreenLoop		# Loop
+
+clearPartialScreenEND:
 	# Restore $ra
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
