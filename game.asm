@@ -66,8 +66,8 @@
 .eqv 	maxJumpCount 12
 
 .data
-A: 	.word 	2, 46, 0, 0		# Stores {oldx, oldy, platf6check, platform10check}
-B: 	.word 	2, 46, 0, 0, 0, 0, 0, 0	# Stores {plat6x, plat6y, plat10x, plat10y, bluex, bluey, greenx, greeny}
+A: 	.word 	2, 46, 1, 1, 1, 1, 1 		
+B: 	.word 	2, 46, 0, 0, 61, 36, 61, 36, 0, 0, 0, 0
 .text
 
 #---------------------------------Initialize Game--------------------------------
@@ -131,9 +131,11 @@ skipCoinChecks:				# Else, skip the coin checks
 
 checkPPBlue:
 	# Check for blue pickup
-	# If position in array is 0 skip
+	lw $t1, 16($s3)			# Load bluecheck value into $t1
+	beqz $t1, checkPPGreen		# If bluecheck = 0, skip checkPPBlue
 	jal checkPickupBlue
-	
+
+checkPPGreen:
 	
 	
 skipPPChecks:	
@@ -177,10 +179,10 @@ checkPickupBlue:
 	addi $t2, $zero, 63		# End x
 	addi $t3, $zero, 31		# Start y
 	addi $t4, $zero, 39		# End y
-	bge $s1, $s1, xBlueCheck		# Check if x >= x1
+	bge $s1, $t1, xBlueCheck		# Check if x >= x1
 	jr $ra
 xBlueCheck:
-	ble $s1, $a2, yBlueCheck		# Check if x <= x2
+	ble $s1, $t2, yBlueCheck		# Check if x <= x2
 	jr $ra
 yBlueCheck:
 	bge $s2, $t3, yBlueCheck2	# Check if y <= y1
@@ -192,12 +194,23 @@ yBlueCheck2:
 
 # The blue pickup will instantly give needed score to win (+300 score)
 activateBlue:
+	# Special Pickup Power
 	# Increment score by 300
 	addi $s0, $s0, 3			# Increment the score by 3 (300)
+	
 	# Erase the pickup
+	lw $a1, 24($s4)			# Load old blue x value
+	addi $a2, $a1, 2			# Load end index for x
+	lw $a3, 28($s4)			# Load old blue y value
+	li $a0, BLACK			# $a0 stores the colour code
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
 	# Set pickup check for blue to 0
-	# Return
-	j skipPPChecks
+	sw $zero, 16($s3)		# Set bluecheck to 0
+	j skipPPChecks			# Return
 	
 
 
