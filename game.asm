@@ -162,7 +162,7 @@ skipPPChecks:
 checkBlueHover:
 	# Hover blue
 	lw $t1, 16($s3)			# Load bluecheck value into $t1
-	beqz $t1, checkBlueHover		# If bluecheck = 0, skip checkBlueHover
+	beqz $t1, checkGreenHover	# If bluecheck = 0, skip checkBlueHover
 	jal hoverBlue
 
 checkGreenHover:
@@ -209,33 +209,48 @@ hoverBlue:
 	addi $t2, $zero, 1
 	lw $t1, 16($s3)			# Load bluecheck value into $t1
 	beq $t1, $t2, hoverBlueUp	# If bluecheck == 1, move up by 1
-					# Else, move down by 1
+	# Else, move down by 1
+	lw $t2, 20($s4)			# Get y value	
+	addi $t2, $t2, 1			# Move y value down 1
+	sw $t2, 20($s4)			# Save y value in array
+	
+	addi $t3, $zero, 36		# Set down boundary
+	beq $t2, $t3, updateHoverBlueUp	# If y = boundary, update bluecheck to 1
+	j updateBlue
+	
 hoverBlueUp:
 	lw $t2, 20($s4)			# Get y value	
 	addi $t2, $t2, -1		# Move y value up 1
 	sw $t2, 20($s4)			# Save y value in array
 	
-	addi $t3, $zero, 34		# Set up boundary
+	addi $t3, $zero, 33		# Set up boundary
 	beq $t2, $t3, updateHoverBlueDown	# If y = boundary, update bluecheck to 2
-	addi $t3, $zero, 36		# Set down boundary
-	beq $t2, $t3, updateHoverBlueUp	# If y = boundary, update bluecheck to 1
-	# Erase pickup
-	# Redraw pickup
-	j skipHoverChecks
+	j updateBlue
 
 updateHoverBlueUp:
 	addi $t5, $zero, 1		# Set 1
 	sw $t5, 16($s3)			# Set bluecheck to 1
-	# Erase pickup
-	# Redraw pickup 
-	j skipHoverChecks
+	j updateBlue
 
 updateHoverBlueDown:
 	addi $t5, $zero, 2		# Set 2
 	sw $t5, 16($s3)			# Set bluecheck to 2
+	j updateBlue
+	
+updateBlue:
 	# Erase pickup
-	# Redraw pickup 
+	li $a0, PPBLUE1			# Load argument
+	jal erasePickup
+	# Redraw pickup
+	li $a0, PPBLUE1
+	lw $t1, 16($s4)			# Load new x value
+	lw $t2, 20($s4)			# Load new y value
+	move $a1, $t1			# Store start index
+	addi $a2, $t1, 2			# Store end index
+	move $a3, $t2			# Store y value
+	jal drawPickup
 	j skipHoverChecks
+	
 
 
 
