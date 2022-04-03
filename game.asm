@@ -67,7 +67,7 @@
 
 .data
 A: 	.word 	2, 46, 1, 1, 1, 1, 1 		
-B: 	.word 	2, 46, 0, 0, 61, 36, 61, 36, 0, 0, 0, 0
+B: 	.word 	2, 46, 0, 0, 60, 36, 60, 36, 29, 13, 29, 13
 .text
 
 #---------------------------------Initialize Game--------------------------------
@@ -128,7 +128,7 @@ checkCoin3:
 	jal checkCoin			# Check if coin was collided with
 	
 skipCoinChecks:				# Else, skip the coin checks
-
+	# Check for pickups
 checkPPBlue:
 	# Check for blue pickup
 	lw $t1, 16($s3)			# Load bluecheck value into $t1
@@ -136,10 +136,19 @@ checkPPBlue:
 	jal checkPickupBlue
 
 checkPPGreen:
+	# Check for green pickup
+	lw $t1, 20($s3)			# Load greencheck value into $t1
+	beqz $t1, checkPPViolet		# If greencheck = 0, skip checkPPGreen
+	jal checkPickupGreen
+	
+checkPPViolet:
+	# Check for violet pickup
+	lw $t1, 24($s3)			# Load violetcheck value into $t1
+	beqz $t1, skipPPChecks		# If violetcheck = 0, skip checkPPViolet
+	jal checkPickupViolet
 	
 	
 skipPPChecks:	
-
 	# Redraw Character
 	addi $t5, $zero, 1		
 	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacte
@@ -191,12 +200,20 @@ yBlueCheck2:
 	ble $s2, $t4, activateBlue	# Check if y >= y2
 	jr $ra 
 
-
-# The blue pickup will instantly give needed score to win (+300 score)
+# The blue pickup will turn water to wood
 activateBlue:
 	# Special Pickup Power
-	# Increment score by 300
-	addi $s0, $s0, 3			# Increment the score by 3 (300)
+	# Turn water to wood by drawing over water lines with platform brown
+	li $a0, BROWN			# $a0 stores the white colour code
+	addi $a3, $zero, waterLine1	# $a3 stores y-value
+	addi $a1, $zero, 0		# $a1 stores start index
+	addi $a2, $zero, 63		# $a2 stores length		
+	jal drawLine
+	li $a0, BROWN			# $a0 stores the white colour code
+	addi $a3, $zero, waterLine2	# $a3 stores y-value
+	addi $a1, $zero, 0		# $a1 stores start index
+	addi $a2, $zero, 63		# $a2 stores length		
+	jal drawLine
 	
 	# Erase the pickup
 	lw $a1, 24($s4)			# Load old blue x value
@@ -212,13 +229,102 @@ activateBlue:
 	sw $zero, 16($s3)		# Set bluecheck to 0
 	j skipPPChecks			# Return
 	
+	
+# Check if green powerip was picked up
+checkPickupGreen:
+	addi $t1, $zero, 26		# Start x
+	addi $t2, $zero, 34		# End x
+	addi $t3, $zero, 8		# Start y
+	addi $t4, $zero, 16		# End y
+	bge $s1, $t1, xGreenCheck	# Check if x >= x1
+	jr $ra
+xGreenCheck:
+	ble $s1, $t2, yGreenCheck	# Check if x <= x2
+	jr $ra
+yGreenCheck:
+	bge $s2, $t3, yGreenCheck2	# Check if y <= y1
+	jr $ra	
+yGreenCheck2:
+	ble $s2, $t4, activateGreen	# Check if y >= y2
+	jr $ra 
 
+# The green pickup will instantly give needed score to win (+300 score)
+activateGreen:
+	# Special Pickup Power
+	# Increment score by 300
+	addi $s0, $s0, 3			# Increment the score by 3 (300)
+	jal updateScore
+	
+	# Erase the pickup
+	lw $a1, 40($s4)			# Load old x value
+	addi $a2, $a1, 2			# Load end index for x
+	lw $a3, 44($s4)			# Load old y value
+	li $a0, BLACK			# $a0 stores the colour code
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	# Set pickup check for green to 0
+	sw $zero, 20($s3)		# Set greencheck to 0
+	j skipPPChecks			# Return
+	
+
+# Check if violet powerip was picked up
+checkPickupViolet:
+	addi $t1, $zero, 58		# Start x
+	addi $t2, $zero, 63		# End x
+	addi $t3, $zero, 0		# Start y
+	addi $t4, $zero, 5		# End y
+	bge $s1, $t1, xVioletCheck	# Check if x >= x1
+	jr $ra
+xVioletCheck:
+	ble $s1, $t2, yVioletCheck	# Check if x <= x2
+	jr $ra
+yVioletCheck:
+	bge $s2, $t3, yVioletCheck2	# Check if y <= y1
+	jr $ra	
+yVioletCheck2:
+	ble $s2, $t4, activateViolet	# Check if y >= y2
+	jr $ra 
+
+# The violet pickup will unlock the barrier and create a path directly to the button
+activateViolet:
+	# Special Pickup Power
+	# Remove barrier and draw path
+	# Barrier
+	li $a0, BLACK			# $a0 stores the colour code
+	sw $a0, 32($t0)			# Paint colour
+	sw $a0, 288($t0)			# Paint colour
+	sw $a0, 544($t0)			# Paint colour
+	sw $a0, 800($t0)			# Paint colour
+	sw $a0, 1056($t0)		# Paint colour
+	sw $a0, 1312($t0)		# Paint colour
+	# Path to button
+	li $a0, BROWN			# Store colour code
+	addi $a1, $zero, 9		# Start index
+	addi $a2, $zero, 58		# End index
+	addi $a3, $zero, 6		# y value
+	jal drawLine
+	
+	# Erase the pickup
+	addi $a1, $zero, 60		# Start x
+	addi $a2, $zero, 62		# End x
+	addi $a3, $zero, 2		# y value
+	li $a0, BLACK			# $a0 stores the colour code
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	# Set pickup check for violet to 0
+	sw $zero, 24($s3)		# Set violetcheck to 0
+	j skipPPChecks			# Return
 
 
 
 
 #####---------------------------------MOVEMENT FUNCTIONS------------------------------#####
-
 		
 # Given colour, and x/y values, check if specified colour is under the player
 checkBottom:
