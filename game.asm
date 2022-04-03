@@ -86,9 +86,18 @@ initialize:
 	
 #---------------------------------Main Loop--------------------------------------
 main:	
+	# Set initial values
 	addi $s7, $zero, 1		# Set drawCheck to 1 ( don't draw)
 	sw $s1, 0($s3)			# Save old x value
 	sw $s2, 4($s3)			# Save old y value
+	lw $t1, 16($s4)			# Get new blue x
+	lw $t2, 20($s4)			# Get new blue y
+	sw $t1, 24($s4)			# Set old blue x to new blue x
+	sw $t2, 28($s4)			# Set old blue x to new blue x
+	lw $t1, 32($s4)			# Get new green x
+	lw $t2, 36($s4)			# Get new greem y
+	sw $t1, 40($s4)			# Set old green x to new green x
+	sw $t2, 44($s4)			# Set old green x to new green x
 	
 	# Check for mid-jump/gravity
 	beq $s6, $zero, moveGravity	# If not mid jump (inAir = 0), check gravity
@@ -149,17 +158,29 @@ checkPPViolet:
 	
 	
 skipPPChecks:	
+	# Hover pickups
+checkBlueHover:
+	# Hover blue
+	lw $t1, 16($s3)			# Load bluecheck value into $t1
+	beqz $t1, checkBlueHover		# If bluecheck = 0, skip checkBlueHover
+	jal hoverBlue
+
+checkGreenHover:
+	# Hover green
+	lw $t1, 20($s3)			# Load greencheck value into $t1
+	beqz $t1, redrawCharacter	# If greencheck = 0, skip checkGreenHover
+	jal hoverGreen
+	
+skipHoverChecks:
+
+redrawCharacter:
 	# Redraw Character
 	addi $t5, $zero, 1		
 	beq $s7, $t5, noUpdate		# If drawCheck == 1, skip updateCharacte
-		
-redrawCharacter:
+
 	# Erase object with old coordinates
 	lw $a1, 0($s3)			# Get old x coordinate of character from array
 	lw $a3, 4($s3)			# Get old y coordinate of character from array
-	
-	#move $a1, $t1			# Set old x coordinate of character
-	#move $a3, $t2			# Set old y coordinate of character
 	jal eraseCharacter		# Erase character
 	# Redraw character
 	move $a1, $s1			# Set new x coordinate of character
@@ -177,6 +198,44 @@ noUpdate:
 END:	
 	li $v0, 10			# Terminate program
 	syscall				# Call syscall
+
+
+
+
+#####---------------------------------PICKUP HOVER FUNCTIONS---------------------------#####
+
+# This function will hover the blue pickup
+hoverBlue:
+	addi $t2, $zero, 1
+	lw $t1, 16($s3)			# Load bluecheck value into $t1
+	beq $t1, $t2, hoverBlueUp	# If bluecheck == 1, move up by 1
+					# Else, move down by 1
+hoverBlueUp:
+	lw $t2, 20($s4)			# Get y value	
+	addi $t2, $t2, -1		# Move y value up 1
+	sw $t2, 20($s4)			# Save y value in array
+	
+	addi $t3, $zero, 34		# Set up boundary
+	beq $t2, $t3, updateHoverBlueDown	# If y = boundary, update bluecheck to 2
+	addi $t3, $zero, 36		# Set down boundary
+	beq $t2, $t3, updateHoverBlueUp	# If y = boundary, update bluecheck to 1
+	# Erase pickup
+	# Redraw pickup
+	j skipHoverChecks
+
+updateHoverBlueUp:
+	addi $t5, $zero, 1		# Set 1
+	sw $t5, 16($s3)			# Set bluecheck to 1
+	# Erase pickup
+	# Redraw pickup 
+	j skipHoverChecks
+
+updateHoverBlueDown:
+	addi $t5, $zero, 2		# Set 2
+	sw $t5, 16($s3)			# Set bluecheck to 2
+	# Erase pickup
+	# Redraw pickup 
+	j skipHoverChecks
 
 
 
@@ -214,17 +273,9 @@ activateBlue:
 	addi $a1, $zero, 0		# $a1 stores start index
 	addi $a2, $zero, 63		# $a2 stores length		
 	jal drawLine
-	
 	# Erase the pickup
-	lw $a1, 24($s4)			# Load old blue x value
-	addi $a2, $a1, 2			# Load end index for x
-	lw $a3, 28($s4)			# Load old blue y value
-	li $a0, BLACK			# $a0 stores the colour code
-	jal drawLine
-	addi $a3, $a3, 1			# Go down one level
-	jal drawLine
-	addi $a3, $a3, 1			# Go down one level
-	jal drawLine
+	li $a0, PPBLUE1			# Load argument
+	jal erasePickup
 	# Set pickup check for blue to 0
 	sw $zero, 16($s3)		# Set bluecheck to 0
 	j skipPPChecks			# Return
@@ -254,17 +305,9 @@ activateGreen:
 	# Increment score by 300
 	addi $s0, $s0, 3			# Increment the score by 3 (300)
 	jal updateScore
-	
 	# Erase the pickup
-	lw $a1, 40($s4)			# Load old x value
-	addi $a2, $a1, 2			# Load end index for x
-	lw $a3, 44($s4)			# Load old y value
-	li $a0, BLACK			# $a0 stores the colour code
-	jal drawLine
-	addi $a3, $a3, 1			# Go down one level
-	jal drawLine
-	addi $a3, $a3, 1			# Go down one level
-	jal drawLine
+	li $a0, PPGREEN1			# Load argument
+	jal erasePickup
 	# Set pickup check for green to 0
 	sw $zero, 20($s3)		# Set greencheck to 0
 	j skipPPChecks			# Return
@@ -306,8 +349,23 @@ activateViolet:
 	addi $a2, $zero, 58		# End index
 	addi $a3, $zero, 6		# y value
 	jal drawLine
-	
 	# Erase the pickup
+	li $a0, PPVIOLET1		# Load argument
+	jal erasePickup
+	# Set pickup check for violet to 0
+	sw $zero, 24($s3)		# Set violetcheck to 0
+	j skipPPChecks			# Return
+
+
+# Erase the pickup based on colour inputted
+erasePickup:
+	# Store $ra
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	beq $a0, PPBLUE1, erasePickupBlue	# Check which colour pickup to draw
+	beq $a0, PPGREEN1, erasePickupGreen
+erasePickupViolet:
 	addi $a1, $zero, 60		# Start x
 	addi $a2, $zero, 62		# End x
 	addi $a3, $zero, 2		# y value
@@ -317,10 +375,38 @@ activateViolet:
 	jal drawLine
 	addi $a3, $a3, 1			# Go down one level
 	jal drawLine
-	# Set pickup check for violet to 0
-	sw $zero, 24($s3)		# Set violetcheck to 0
-	j skipPPChecks			# Return
+	j erasePickupEND
+erasePickupBlue:
+	lw $a1, 24($s4)			# Load old blue x value
+	addi $a2, $a1, 2			# Load end index for x
+	lw $a3, 28($s4)			# Load old blue y value
+	li $a0, BLACK			# $a0 stores the colour code
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	j erasePickupEND
+erasePickupGreen:
+	lw $a1, 40($s4)			# Load old x value
+	addi $a2, $a1, 2			# Load end index for x
+	lw $a3, 44($s4)			# Load old y value
+	li $a0, BLACK			# $a0 stores the colour code
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	addi $a3, $a3, 1			# Go down one level
+	jal drawLine
+	j erasePickupEND
 
+erasePickupEND:	
+	lw $ra, 0($sp)		# Restore $ra
+	addi $sp, $sp, 4		# Prepare stack address
+	jr $ra	
+	
+	
+	
+	
 
 
 
