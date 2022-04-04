@@ -62,11 +62,11 @@
 .eqv	scoreLineY 56
 .eqv 	waterLine1 55
 .eqv	waterLine2 54
-.eqv	waitDelay 40
+.eqv	waitDelay 50
 .eqv 	maxJumpCount 12
 
 .data
-A: 	.word 	2, 46, 1, 1, 1, 1, 1 		
+A: 	.word 	2, 46, -1, -1, 1, 1, 1 		
 B: 	.word 	2, 46, 0, 0, 60, 36, 60, 36, 29, 13, 29, 13
 .text
 
@@ -98,12 +98,35 @@ main:
 	lw $t2, 36($s4)			# Get new greem y
 	sw $t1, 40($s4)			# Set old green x to new green x
 	sw $t2, 44($s4)			# Set old green x to new green x
+	lw $t1, 8($s3)			# Load platform 6 count
+	addi $t1, $t1, 1			# Increment by 1
+	sw $t1, 8($s3)			# Store platform 6 count
+	lw $t1, 12($s3)			# Load platform 10 count
+	addi $t1, $t1, 1			# Increment by 1
+	sw $t1, 12($s3)			# Store platform 10 count
 	
 	# Check for mid-jump/gravity
 	beq $s6, $zero, moveGravity	# If not mid jump (inAir = 0), check gravity
-	j altMoveUp			# Else, we are mid-jump so move up
-	
+	j altMoveUp
+				# Else, we are mid-jump so move up
 jumpLookKey:	
+	# Update disappearing platforms
+checkPlat6:
+	lw $t1, 8($s3)			# Load platform 6 count
+	beqz $t1, drawPlatform6		# If count == 0, draw platform
+	addi $t2, $zero, 20		# Set check
+	beq $t1, $t2, erasePlatform6	# If count == mid point, erase the platform
+	addi $t2, $zero, 40		# Set check
+	beq $t1, $t2, updatePlatform6	# If count == end, draw platform and update count
+checkPlat10:
+	lw $t1, 12($s3)			# Load platform 10 count
+	beqz $t1, drawPlatform10		# If count == 0, draw platform
+	addi $t2, $zero, 20		# Set check
+	beq $t1, $t2, erasePlatform10	# If count == mid point, erase the platform
+	addi $t2, $zero, 40		# Set check
+	beq $t1, $t2, updatePlatform10	# If count == end, draw platform and update count
+	
+skipPlatChecks:
 	# Check for key press
 	li $t9, 0xffff0000		# Load keypressed memory address
 	lw $t8, 0($t9)			
@@ -164,7 +187,6 @@ checkBlueHover:
 	lw $t1, 16($s3)			# Load bluecheck value into $t1
 	beqz $t1, checkGreenHover	# If bluecheck = 0, skip checkBlueHover
 	jal hoverBlue
-
 checkGreenHover:
 	# Hover green
 	lw $t1, 20($s3)			# Load greencheck value into $t1
@@ -199,6 +221,60 @@ END:
 	li $v0, 10			# Terminate program
 	syscall				# Call syscall
 
+
+
+
+
+
+#####---------------------------DISAPPEARING PLATFORMS FUNCTIONS-----------------------#####
+
+# Update platform 6 functions
+drawPlatform6:
+	li $a0, BROWN			# $a0 stores the colour code
+	addi $a1, $zero, 47		# $a1 stores start index
+	addi $a2, $zero, 53		# $a2 stores end index
+	addi $a3, $zero, 33 		# $a3 stores y-value
+	jal drawLine
+	j checkPlat10
+erasePlatform6:
+	li $a0, BLACK			# $a0 stores the colour code
+	addi $a1, $zero, 47		# $a1 stores start index
+	addi $a2, $zero, 53		# $a2 stores end index
+	addi $a3, $zero, 33 		# $a3 stores y-value
+	jal drawLine
+	j checkPlat10
+updatePlatform6:
+	li $a0, BROWN			# $a0 stores the colour code
+	addi $a1, $zero, 47		# $a1 stores start index
+	addi $a2, $zero, 53		# $a2 stores end index
+	addi $a3, $zero, 33 		# $a3 stores y-value
+	jal drawLine
+	sw $zero, 8($s3)			# Set count to 0
+	j checkPlat10
+
+# Update platform 10 functions
+drawPlatform10:
+	li $a0, BROWN			# $a0 stores the colour code
+	addi $a1, $zero, 10		# $a1 stores start index
+	addi $a2, $zero, 16		# $a2 stores end index
+	addi $a3, $zero, 17 		# $a3 stores y-value
+	jal drawLine
+	j skipPlatChecks
+erasePlatform10:
+	li $a0, BLACK			# $a0 stores the colour code
+	addi $a1, $zero, 10		# $a1 stores start index
+	addi $a2, $zero, 16		# $a2 stores end index
+	addi $a3, $zero, 17 		# $a3 stores y-value
+	jal drawLine
+	j skipPlatChecks
+updatePlatform10:
+	li $a0, BROWN			# $a0 stores the colour code
+	addi $a1, $zero, 10		# $a1 stores start index
+	addi $a2, $zero, 16		# $a2 stores end index
+	addi $a3, $zero, 17 		# $a3 stores y-value
+	jal drawLine
+	sw $zero, 12($s3)		# Set count to 0
+	j skipPlatChecks
 
 
 
@@ -249,10 +325,56 @@ updateBlue:
 	addi $a2, $t1, 2			# Store end index
 	move $a3, $t2			# Store y value
 	jal drawPickup
-	j skipHoverChecks
+	j checkGreenHover
 	
 
+# This function will hover the green pickup
+hoverGreen:
+	addi $t2, $zero, 1
+	lw $t1, 20($s3)			# Load greencheck value into $t1
+	beq $t1, $t2, hoverGreenUp	# If greencheck == 1, move up by 1
+	# Else, move down by 1
+	lw $t2, 36($s4)			# Get y value	
+	addi $t2, $t2, 1			# Move y value down 1
+	sw $t2, 36($s4)			# Save y value in array
+	
+	addi $t3, $zero, 13		# Set down boundary
+	beq $t2, $t3, updateHoverGreenUp	# If y = boundary, update greencheck to 1
+	j updateGreen
 
+hoverGreenUp:
+	lw $t2, 36($s4)			# Get y value	
+	addi $t2, $t2, -1		# Move y value up 1
+	sw $t2, 36($s4)			# Save y value in array
+	
+	addi $t3, $zero, 10		# Set up boundary
+	beq $t2, $t3, updateHoverGreenDown	# If y = boundary, update greencheck to 2
+	j updateGreen
+
+updateHoverGreenUp:
+	addi $t5, $zero, 1		# Set 1
+	sw $t5, 20($s3)			# Set greencheck to 1
+	j updateGreen
+
+updateHoverGreenDown:
+	addi $t5, $zero, 2		# Set 2
+	sw $t5, 20($s3)			# Set bluecheck to 2
+	j updateGreen
+
+updateGreen:
+	# Erase pickup
+	li $a0, PPGREEN1			# Load argument
+	jal erasePickup
+	# Redraw pickup
+	li $a0, PPGREEN1
+	lw $t1, 32($s4)			# Load new x value
+	lw $t2, 36($s4)			# Load new y value
+	move $a1, $t1			# Store start index
+	addi $a2, $t1, 2			# Store end index
+	move $a3, $t2			# Store y value
+	jal drawPickup
+	j skipHoverChecks	
+	
 
 
 #####---------------------------------PICKUP COLLISION FUNCTIONS-----------------------#####
@@ -350,17 +472,17 @@ yVioletCheck2:
 activateViolet:
 	# Special Pickup Power
 	# Remove barrier and draw path
-	# Barrier
+	# Barrier 
 	li $a0, BLACK			# $a0 stores the colour code
-	sw $a0, 32($t0)			# Paint colour
-	sw $a0, 288($t0)			# Paint colour
-	sw $a0, 544($t0)			# Paint colour
-	sw $a0, 800($t0)			# Paint colour
-	sw $a0, 1056($t0)		# Paint colour
-	sw $a0, 1312($t0)		# Paint colour
+	sw $a0, 36($t0)			# Paint colour
+	sw $a0, 292($t0)			# Paint colour
+	sw $a0, 548($t0)			# Paint colour
+	sw $a0, 804($t0)			# Paint colour
+	sw $a0, 1060($t0)		# Paint colour
+	sw $a0, 1316($t0)		# Paint colour
 	# Path to button
 	li $a0, BROWN			# Store colour code
-	addi $a1, $zero, 9		# Start index
+	addi $a1, $zero, 10		# Start index
 	addi $a2, $zero, 58		# End index
 	addi $a3, $zero, 6		# y value
 	jal drawLine
@@ -432,7 +554,6 @@ checkBottom:
 	move $t1, $a1			# Store colour
 	move $t2, $a2			# Store x
 	addi $t3, $a3, 3			# Store y
-	addi $v0, $zero, 0		# Set $v0 to 0
 	
 	sll $t4, $t3, 8			# Multiply y by 256
 	sll $t2, $t2, 2			# Nultiply x by 4
@@ -459,7 +580,6 @@ checkTop:
 	move $t1, $a1			# Store colour
 	move $t2, $a2			# Store x
 	addi $t3, $a3, -1		# Store y
-	addi $v0, $zero, 0		# Set $v0 to 0
 	
 	sll $t4, $t3, 8			# Multiply y by 256
 	sll $t2, $t2, 2			# Nultiply x by 4
@@ -485,11 +605,10 @@ checkTopEND:
 checkLeft:
 	move $t1, $a1			# Store colour
 	addi $t2, $a2, -1		# Store x
-	move $t3, $a3			# Store y
-	addi $v0, $zero, 0		# Set $v0 to 0				
+	move $t3, $a3			# Store y			
 							
 	sll $t4, $t3, 8			# Multiply y by 256
-	sll $t2, $t2, 2			# Nultiply x by 4
+	sll $t2, $t2, 2			# Multiply x by 4
 	add $t5, $t4, $t2		# y*256 + x
 	add $t6, $t0, $t5		# $t6 = base address + address of pixel
 	lw $t7, ($t6)			# Load colour address of pixel into $t7
@@ -506,14 +625,13 @@ checkLeft:
 checkLeftEND:								
 	addi $v0, $zero, 1		# Set $v0 to 1
 	jr $ra
-	
+
 	
 # Given colour, and x/y values, check if specified colour is on the left of the player
 checkRight:
 	move $t1, $a1			# Store colour
 	addi $t2, $a2, 3			# Store x
-	move $t3, $a3			# Store y
-	addi $v0, $zero, 0		# Set $v0 to 0				
+	move $t3, $a3			# Store y			
 							
 	sll $t4, $t3, 8			# Multiply y by 256
 	sll $t2, $t2, 2			# Nultiply x by 4
@@ -560,13 +678,26 @@ checkMoveUp:
 		
 moveLeft:
 	addi $t5, $zero, 0		# Store left boundary
+	addi $v0, $zero, 0		# Set $v0 to 0	
 	ble $s1, $t5, jumpKeyPressed	# If x = 0, don't update x
-	# Check for on platform
+	# Check for platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
 	move $a3, $s2			# Set $a3 to new y
 	jal checkLeft
-	# Else go up one
+	li $a1, BARRIERBROWN		# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkLeft
+	li $a1, BUTTONGRAY		# Load colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkLeft
+	li $a1, BUTTONRED		# Load colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkLeft
+	# Else go left one
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	bgtz $v0, jumpKeyPressed 	# If return greater than 0, don't go up
 	addi $s1, $s1, -2		# Move x-value left 1
@@ -575,14 +706,15 @@ moveLeft:
 moveRight:
 	addi $t5, $zero, 61		# Store right boundary
 	addi $t6, $zero, 60		# Store right boundary
+	addi $v0, $zero, 0		# Set $v0 to 0	
 	beq $s1, $t6, altMoveRight	# Move right 1 if this exact x value
 	bge $s1, $t5, jumpKeyPressed	# If x => 61, don't update x
-	# Check for on platform
+	# Check for platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
 	move $a3, $s2			# Set $a3 to new y
 	jal checkRight
-	# Else go up one
+	# Else go right one
 	addi $s7, $zero, 0		# Set drawCheck to 0
 	bgtz $v0, jumpKeyPressed 	# If return greater than 0, don't go up
 	addi $s1, $s1, 2			# Move x-value right 1
@@ -593,11 +725,12 @@ altMoveRight:
 	j jumpKeyPressed
 	
 moveUp: 
+	addi $v0, $zero, 0		# Set $v0 to 0
 	addi $t6, $zero, maxJumpCount	# Store max jump counter
 	beq $s5, $t6, lastMoveUp 	# If jump counter == maxJumpCount
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, moveUpBoundary	# If y = 0, don't update y
-	# Check for on platform
+	# Check for platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
 	move $a3, $s2			# Set $a3 to new y
@@ -610,9 +743,10 @@ moveUp:
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpKeyPressed
 lastMoveUp:
+	addi $v0, $zero, 0		# Set $v0 to 0
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, moveUpBoundary	# If y = 0, don't update y
-	# Check for on platform
+	# Check for platform
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
 	move $a3, $s2			# Set $a3 to new y
@@ -631,6 +765,7 @@ moveUpBoundary:
 	j jumpKeyPressed
 # Alternate moveUp for the case where mid jump but you still need to check for key press	
 altMoveUp: 
+	addi $v0, $zero, 0		# Set $v0 to 0
 	addi $t6, $zero,  maxJumpCount	# Store max jump counter
 	beq $s5, $t6, altLastMoveUp 	# If jump counter == maxJumpCount
 	addi $t5, $zero, 0		# Store top boundary
@@ -648,6 +783,7 @@ altMoveUp:
 	addi $s2, $s2, -1		# Move y-value up 1
 	j jumpLookKey
 altLastMoveUp:
+	addi $v0, $zero, 0		# Set $v0 to 0
 	addi $t5, $zero, 0		# Store top boundary
 	beq $s2, $t5, altMoveUpBoundary	# If y = 0, don't update y
 	# Check for on platform
@@ -670,6 +806,7 @@ altMoveUpBoundary:
 	
 moveGravity: 
 	# Check for on platform
+	addi $v0, $zero, 0		# Set $v0 to 0
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
 	move $a3, $s2			# Set $a3 to new y
@@ -1257,7 +1394,7 @@ drawStart:
 	li $a0, BROWN			# $a0 stores the colour code
 	addi $a3, $zero, 6 		# $a3 stores y-value
 	addi $a1, $zero, 0		# $a1 stores start index
-	addi $a2, $zero, 8		# $a2 stores end index
+	addi $a2, $zero, 9		# $a2 stores end index
 	jal drawLine
 	# Platform 14
 	li $a0, BROWN			# $a0 stores the colour code
@@ -1272,37 +1409,22 @@ drawStart:
 	li $a0, BUTTONGRAY		# $a0 stores the colour code
 	addi $a3, $zero, 5 		# $a3 stores y-value
 	addi $a1, $zero, 1		# $a1 stores start index
-	addi $a2, $zero, 6		# $a2 stores end index
+	addi $a2, $zero, 7		# $a2 stores end index
 	jal drawLine
 	# Button
 	li $a0, BUTTONRED		# $a0 stores the colour code
 	addi $a3, $zero, 4 		# $a3 stores y-value
 	addi $a1, $zero, 2		# $a1 stores start index
-	addi $a2, $zero, 5		# $a2 stores end index
+	addi $a2, $zero, 6		# $a2 stores end index
 	jal drawLine
-	# Barrier
+	# Barrier 
 	li $a0, BARRIERBROWN		# $a0 stores the colour code
-	sw $a0, 32($t0)			# Paint colour
-	sw $a0, 288($t0)			# Paint colour
-	sw $a0, 544($t0)			# Paint colour
-	sw $a0, 800($t0)			# Paint colour
-	sw $a0, 1056($t0)		# Paint colour
-	sw $a0, 1312($t0)		# Paint colour
-
-
-	#---------------------------------Draw Stopped Platforms---------------------------
-	# Platform 6
-	li $a0, STOPPEDORANGE		# $a0 stores the colour code
-	addi $a3, $zero, 33 		# $a3 stores y-value
-	addi $a1, $zero, 47		# $a1 stores start index
-	addi $a2, $zero, 53		# $a2 stores end index
-	jal drawLine
-	# Platform 10
-	li $a0, STOPPEDORANGE		# $a0 stores the colour code
-	addi $a3, $zero, 17 		# $a3 stores y-value
-	addi $a1, $zero, 10		# $a1 stores start index
-	addi $a2, $zero, 16		# $a2 stores end index
-	jal drawLine
+	sw $a0, 36($t0)			# Paint colour
+	sw $a0, 292($t0)			# Paint colour
+	sw $a0, 548($t0)			# Paint colour
+	sw $a0, 804($t0)			# Paint colour
+	sw $a0, 1060($t0)		# Paint colour
+	sw $a0, 1316($t0)		# Paint colour
 	
 	
 	#---------------------------------Draw Coins---------------------------------------
