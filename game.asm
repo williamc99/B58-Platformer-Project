@@ -14,20 +14,22 @@
 #
 # Which milestones have been reached in this submission?
 # (See the assignment handout for descriptions of the milestones)
-# - Milestone 2/3 (choose the one the applies)
+# - Milestone 3
 #
 # Which approved features have been implemented for milestone 3?
 # (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
-# 2. (fill in the feature, if any)
-# 3. (fill in the feature, if any)
-# ... (add more if necessary)
+# 1. Health/Score
+# 2. Fail Condition
+# 3. Win Condition
+# 4. Moving Objects
+# 5. Disappearing Platforms
+# 6. Pick-up Effects
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
 #
 # Are you OK with us sharing the video with people outside course staff?
-# - yes / no / yes, and please share this project github link as well!
+# - Share video but not GitHub repo
 #
 # Any additional information that the TA needs to know:
 # - (write here, if any)
@@ -68,7 +70,9 @@
 .eqv 	maxJumpCount 12
 
 .data
-A: 	.word 	2, 46, -1, -1, 1, 1, 1 		
+# Array A = {oldx, oldy, plat6count, plat10count, bluecheck, greencheck, violetcheck}
+A: 	.word 	2, 46, -1, -1, 1, 1, 1 	
+# Array B = {plat6x, plat6y, plat10x, plat10y, bluex, bluey, blueoldx, blueoldy, greenx, greeny, greenoldx, greenoldy}	
 B: 	.word 	2, 46, 0, 0, 60, 36, 60, 36, 29, 13, 29, 13
 .text
 
@@ -109,8 +113,8 @@ main:
 	
 	# Check for mid-jump/gravity
 	beq $s6, $zero, moveGravity	# If not mid jump (inAir = 0), check gravity
-	j altMoveUp
-				# Else, we are mid-jump so move up
+	j altMoveUp			# Else, we are mid-jump so move up
+				
 jumpLookKey:	
 	# Update disappearing platforms
 checkPlat6:
@@ -227,15 +231,18 @@ noUpdate:
 # Upon win of game, clear screen and print win game text
 winGame:
 	jal clearPartialScreen		# Partially clear screen
-	# Draw winGame
+	li $a0, WINGREEN			# Load colour
+	jal drawRestartText		# Draw restart text
+	jal drawYou			# Draw the word "you"
+	jal drawWin			# Draw the word "win"
 	j endLoop
 	
 loseGame:
 	jal clearPartialScreen		# Partially clear screen
-	# Draw lose game
 	li $a0, LOSERED			# Load colour
 	jal drawRestartText		# Draw restart text
-	jal drawYou
+	jal drawYou			# Draw the word "you"
+	jal drawLose			# Draw the word "lose"
 	j endLoop
 
 # This loop is entered upon win/loss of game
@@ -2135,13 +2142,230 @@ drawYou:
 	lw $ra, 0($sp)			# Restore $ra
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
+		
+
+# Draw the lose text
+drawLose:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	li $a0, LOSERED			# Load colour
+	
+	# L
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 35		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Load colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 36		# Set x value
+	jal drawVertLine
+	li $t1, LOSERED	
+	sw $t1, 3728($t0)		# Paint pixel
+	li $t1, WHITE
+	sw $t1, 3732($t0)		# Paint pixel
+	sw $t1, 3736($t0)		# Paint pixel
+	sw $t1, 3740($t0)		# Paint pixel
+	
+	# O
+	li $t1, LOSERED	
+	sw $t1, 2212($t0)		# Paint pixel
+	sw $t1, 3748($t0)		# Paint pixel
+	li $t1, WHITE
+	sw $t1, 2216($t0)		# Paint pixel
+	sw $t1, 2220($t0)		# Paint pixel
+	sw $t1, 2224($t0)		# Paint pixel
+	sw $t1, 3752($t0)		# Paint pixel
+	sw $t1, 3756($t0)		# Paint pixel
+	sw $t1, 3760($t0)		# Paint pixel
+	li $a0, LOSERED
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 40		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 44		# Set x value
+	jal drawVertLine
+	li $a0, WHITE
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 41		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 45		# Set x value
+	jal drawVertLine
+	
+	# S
+	li $t1, LOSERED
+	sw $t1, 2240($t0)		# Paint pixel
+	sw $t1, 2492($t0)		# Paint pixel
+	sw $t1, 2748($t0)		# Paint pixel
+	sw $t1, 3008($t0)		# Paint pixel
+	sw $t1, 3268($t0)		# Paint pixel
+	sw $t1, 3272($t0)		# Paint pixel
+	sw $t1, 3276($t0)		# Paint pixel
+	sw $t1, 3532($t0)		# Paint pixel
+	sw $t1, 3772($t0)		# Paint pixel
+	li $a0, WHITE
+	addi $a1, $zero, 49		# Set start x
+	addi $a2, $zero, 52		# Set end x
+	addi $a3, $zero, 8		# Set y value
+	jal drawLine
+	addi $a1, $zero, 49		# Set start x
+	addi $a2, $zero, 51		# Set end x
+	addi $a3, $zero, 11		# Set y value
+	jal drawLine
+	addi $a1, $zero, 48		# Set start x
+	addi $a2, $zero, 51		# Set end x
+	addi $a3, $zero, 14		# Set y value
+	jal drawLine
+	li $t1, WHITE
+	sw $t1, 2496($t0)		# Paint pixel
+	sw $t1, 2752($t0)		# Paint pixel
+	sw $t1, 3280($t0)		# Paint pixel
+	sw $t1, 3536($t0)		# Paint pixel
+	
+	# E
+	li $t1, LOSERED
+	sw $t1, 2268($t0)		# Paint pixel
+	sw $t1, 3804($t0)		# Paint pixel
+	li $a0, LOSERED
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 54		# Set x value
+	jal drawVertLine
+	li $a0, WHITE
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 55		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 56		# Set start x
+	addi $a2, $zero, 59		# Set end x
+	addi $a3, $zero, 8		# Set y value
+	jal drawLine
+	addi $a1, $zero, 56		# Set start x
+	addi $a2, $zero, 58		# Set end x
+	addi $a3, $zero, 11		# Set y value
+	jal drawLine
+	addi $a1, $zero, 56		# Set start x
+	addi $a2, $zero, 59		# Set end x
+	addi $a3, $zero, 14		# Set y value
+	jal drawLine
 	
 	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
 	
 
-	
-	
+# This function draws the "win" text
+drawWin:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
 
+	# W
+	li $a0, WINGREEN
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 35		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Set colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 36		# Set x value
+	jal drawVertLine
+	li $a0, WINGREEN
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 39		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Set colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 40		# Set x value
+	jal drawVertLine
+
+	li $t1, WINGREEN
+	sw $t1, 3728($t0)		# Paint pixel
+	li $t1, WHITE
+	sw $t1, 3732($t0)		# Paint pixel
+	sw $t1, 3740($t0)		# Paint pixel
+	sw $t1, 3480($t0)		# Paint pixel
+	sw $t1, 3224($t0)		# Paint pixel
+
+	# I
+	li $a0, WINGREEN
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 9		# Set end y
+	addi $a3, $zero, 42		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 43		# Set x value
+	jal drawVertLine
+	li $a0, WINGREEN
+	addi $a1, $zero, 13		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 42		# Set x value
+	jal drawVertLine
+	li $a0, WHITE
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 44		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 43		# Set start x
+	addi $a2, $zero, 45		# Set end x
+	addi $a3, $zero, 8		# Set y value
+	jal drawLine
+	addi $a1, $zero, 43		# Set start x
+	addi $a2, $zero, 45		# Set end x
+	addi $a3, $zero, 14		# Set y value
+	jal drawLine
+	
+	# N
+	li $a0, WINGREEN
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 47		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 10		# Set start y
+	addi $a2, $zero, 12		# Set end y
+	addi $a3, $zero, 49		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 51		# Set x value
+	jal drawVertLine
+	li $a0, WHITE
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 48		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 10		# Set start y
+	addi $a2, $zero, 12		# Set end y
+	addi $a3, $zero, 50		# Set x value
+	jal drawVertLine
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 14		# Set end y
+	addi $a3, $zero, 52		# Set x value
+	jal drawVertLine
+	li $t1, WHITE
+	sw $t1, 2500($t0)		# Paint pixel
+	sw $t1, 3532($t0)		# Paint pixel
+	li $t1, WINGREEN
+	sw $t1, 3528($t0)		# Paint pixel
+
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+
+	
 # This function clears the registers
 clearRegisters:
 	# Store $ra	
@@ -2172,8 +2396,3 @@ clearRegisters:
 	jr $ra	
 
 	
-	
-
-
-
-
