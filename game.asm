@@ -43,6 +43,8 @@
 .eqv	BUTTONRED 0xff1745
 .eqv	BARRIERBROWN 0x4e342e
 .eqv	STOPPEDORANGE 0xff5622
+.eqv 	WINGREEN 0x17d421
+.eqv	LOSERED	0xe91e62
 
 .eqv	PPBLUE1	0x2195f3
 .eqv	PPBLUE2 	0x40c3ff
@@ -217,17 +219,41 @@ noUpdate:
 	j main				# Loop main
 
 
-END:	
-	li $v0, 10			# Terminate program
-	syscall				# Call syscall
 
 
 
+#####------------------------------WIN/LOSE GAME FUNCTIONS-----------------------------#####
 
+# Upon win of game, clear screen and print win game text
+winGame:
+	jal clearPartialScreen		# Partially clear screen
+	# Draw winGame
+	j endLoop
+	
+loseGame:
+	jal clearPartialScreen		# Partially clear screen
+	# Draw lose game
+	li $a0, LOSERED			# Load colour
+	jal drawRestartText		# Draw restart text
+	jal drawYou
+	j endLoop
+
+# This loop is entered upon win/loss of game
+endLoop:	
+	# Check for key press
+	li $t9, 0xffff0000		# Load keypressed memory address
+	lw $t8, 0($t9)			
+	bne $t8, 1, endLoop		# If key press didn't happen, continue loop
+	lw $t2, 4($t9) 			# Else, Get key value of press
+	beq $t2, 0x70, restartGame	# If "p" pressed, restart game
+	j endLoop
 
 
 #####---------------------------DISAPPEARING PLATFORMS FUNCTIONS-----------------------#####
-
+# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra
 # Update platform 6 functions
 drawPlatform6:
 	li $a0, BROWN			# $a0 stores the colour code
@@ -807,6 +833,22 @@ altMoveUpBoundary:
 moveGravity: 
 	# Check for on platform
 	addi $v0, $zero, 0		# Set $v0 to 0
+	li $a1, WATERBLUE		# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkBottom
+	bgtz $v0, loseGame 		# If return greater than 0, water touched, so lose game
+	addi $v0, $zero, 0		# Set $v0 to 0
+	li $a1, BUTTONRED		# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkBottom
+	li $a1, BUTTONGRAY		# Load platform colour
+	move $a2, $s1			# Set $a2 to new x
+	move $a3, $s2			# Set $a3 to new y
+	jal checkBottom
+	bgtz $v0, winGame 		# If return greater than 0, button touched, so win game
+	addi $v0, $zero, 0		# Set $v0 to 0
 	li $a1, BROWN			# Load platform colour
 	move $a2, $s1			# Set $a2 to new x
 	move $a3, $s2			# Set $a3 to new y
@@ -824,9 +866,6 @@ noJumper:
 	j jumpLookKey			# Return to main
 	
 restartGame:
-	#j END
-	#addi $s0, $s0, 1
-	#jal updateScore
 	jal clearScreen
 	jal clearRegisters
 	j initialize
@@ -1515,6 +1554,34 @@ drawLineLoop:
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra				# Jump back to line that called us
 	
+
+# Draw a vertical line
+drawVertLine:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	
+	move $t1, $a0			# Colour
+	move $t2, $a1			# Start y
+	move $t3, $a2			# End y
+	move $t4, $a3			# x value
+	
+	sll $t2, $t2, 8			# $t2 = start index * 256
+	sll $t3, $t3, 8			# Set $t3 = end index * 256
+	sll $t4, $t4, 2			# Multiply x value by 4
+
+drawVertLineLoop:
+	add $t5, $t4, $t2		# $t5 = y*256 + x*4		
+	add $t6, $t5, $t0		# $t6 = address of pixel + base address
+	sw $t1, 0($t6)			# Paint the pixel
+	addi $t2, $t2, 256		# Increment index by 256
+	ble $t2, $t3, drawVertLineLoop	# Continue loop if i <= end index
+	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+	
 	
 
 #-----------------------------------------Draw Coin Function-------------------------------	
@@ -1890,9 +1957,190 @@ clearPartialScreenEND:
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
 
+		
+# Draw the restart text
+drawRestartText:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
 
+	# "p" 
+	move $t1, $a0			# Get colour of p
+	sw $t1, 8272($t0)		# Paint pixel
+	sw $t1, 8276($t0)		# Paint pixel
+	sw $t1, 8280($t0)		# Paint pixel
+	sw $t1, 8528($t0)		# Paint pixel
+	sw $t1, 8540($t0)		# Paint pixel
+	sw $t1, 8784($t0)		# Paint pixel
+	sw $t1, 8788($t0)		# Paint pixel
+	sw $t1, 8792($t0)		# Paint pixel
+	sw $t1, 9040($t0)		# Paint pixel
+	sw $t1, 9296($t0)		# Paint pixel
+	
+	# Quotes
+	li $t1, 	WHITE			# Load colour
+	sw $t1, 8004($t0)		# Paint pixel
+	sw $t1, 8264($t0)		# Paint pixel
+	sw $t1, 8032($t0)		# Paint pixel
+	sw $t1, 8292($t0)		# Paint pixel
+	
+	# "to"
+	sw $t1, 8060($t0)		# Paint pixel
+	sw $t1, 8316($t0)		# Paint pixel
+	sw $t1, 8572($t0)		# Paint pixel
+	sw $t1, 8568($t0)		# Paint pixel
+	sw $t1, 8576($t0)		# Paint pixel
+	sw $t1, 8828($t0)		# Paint pixel
+	sw $t1, 9084($t0)		# Paint pixel
+	sw $t1, 9340($t0)		# Paint pixel
+	sw $t1, 8588($t0)		# Paint pixel
+	sw $t1, 8592($t0)		# Paint pixel
+	sw $t1, 8840($t0)		# Paint pixel
+	sw $t1, 9096($t0)		# Paint pixel
+	sw $t1, 9356($t0)		# Paint pixel
+	sw $t1, 9360($t0)		# Paint pixel
+	sw $t1, 8852($t0)		# Paint pixel
+	sw $t1, 9108($t0)		# Paint pixel
 
+	# Arrow 
+	sw $t1, 8360($t0)		# Paint pixel
+	sw $t1, 8616($t0)		# Paint pixel
+	sw $t1, 8872($t0)		# Paint pixel
+	sw $t1, 8108($t0)		# Paint pixel
+	sw $t1, 8112($t0)		# Paint pixel
+	sw $t1, 8116($t0)		# Paint pixel
+	sw $t1, 8120($t0)		# Paint pixel
+	sw $t1, 8124($t0)		# Paint pixel
+	sw $t1, 8128($t0)		# Paint pixel
+	sw $t1, 8388($t0)		# Paint pixel
+	sw $t1, 8644($t0)		# Paint pixel
+	sw $t1, 8900($t0)		# Paint pixel
+	sw $t1, 9156($t0)		# Paint pixel
+	sw $t1, 9412($t0)		# Paint pixel
+	sw $t1, 9668($t0)		# Paint pixel
+	sw $t1, 9664($t0)		# Paint pixel
+	sw $t1, 9660($t0)		# Paint pixel
+	sw $t1, 9656($t0)		# Paint pixel
+	sw $t1, 9652($t0)		# Paint pixel
+	sw $t1, 9648($t0)		# Paint pixel
+	sw $t1, 9912($t0)		# Paint pixel
+	sw $t1, 10168($t0)		# Paint pixel
+	sw $t1, 9400($t0)		# Paint pixel
+	sw $t1, 9144($t0)		# Paint pixel
+	sw $t1, 9908($t0)		# Paint pixel
+	sw $t1, 9396($t0)		# Paint pixel
+	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra
+	
 
+# Draw the "You" text
+drawYou:
+	# Store $ra	
+	addi $sp, $sp, -4		# Update stack address
+	sw $ra, 0($sp)			# Push $ra to the stack
+	move $t9, $a0			# Get colour of text
+	move $t2, $t9
+	
+	# White text
+	# Y
+	li $t1, WHITE			# Load colour
+	sw $t1, 2092($t0)		# Paint pixel
+	sw $t1, 2348($t0)		# Paint pixel
+	sw $t1, 2604($t0)		# Paint pixel
+	sw $t1, 2108($t0)		# Paint pixel
+	sw $t1, 2364($t0)		# Paint pixel
+	sw $t1, 2620($t0)		# Paint pixel
+	sw $t1, 2864($t0)		# Paint pixel
+	sw $t1, 2872($t0)		# Paint pixel
+	sw $t1, 3124($t0)		# Paint pixel
+	sw $t1, 3380($t0)		# Paint pixel
+	sw $t1, 3636($t0)		# Paint pixel
+	sw $t2, 2088($t0)		# Paint pixel
+	sw $t2, 2344($t0)		# Paint pixel
+	sw $t2, 2600($t0)		# Paint pixel
+	sw $t2, 2104($t0)		# Paint pixel
+	sw $t2, 2360($t0)		# Paint pixel
+	sw $t2, 2616($t0)		# Paint pixel
+	sw $t2, 2860($t0)		# Paint pixel
+	sw $t2, 2868($t0)		# Paint pixel
+	sw $t2, 3120($t0)		# Paint pixel
+	sw $t2, 3376($t0)		# Paint pixel
+	sw $t2, 3632($t0)		# Paint pixel
+	
+	# O
+	sw $t2, 2120($t0)		# Paint pixel
+	sw $t1, 2124($t0)		# Paint pixel
+	sw $t1, 2128($t0)		# Paint pixel
+	sw $t1, 2132($t0)		# Paint pixel
+	sw $t2, 3656($t0)		# Paint pixel
+	sw $t1, 3660($t0)		# Paint pixel
+	sw $t1, 3664($t0)		# Paint pixel
+	sw $t1, 3668($t0)		# Paint pixel
+	
+	move $a0, $t9			# Set colour
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 17		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Set colour
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 18		# Set x value
+	jal drawVertLine
+	move $a0, $t9			# Set colour
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 21		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Set colour
+	addi $a1, $zero, 9		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 22		# Set x value
+	jal drawVertLine
+	
+	
+	# U
+	move $a0, $t9			# Set colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 24		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Set colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 25		# Set x value
+	jal drawVertLine
+	move $a0, $t9			# Set colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 28		# Set x value
+	jal drawVertLine
+	li $a0, WHITE			# Set colour
+	addi $a1, $zero, 8		# Set start y
+	addi $a2, $zero, 13		# Set end y
+	addi $a3, $zero, 29		# Set x value
+	jal drawVertLine
+	
+	li $t1, WHITE
+	move $t2, $t9			
+	sw $t2, 3684($t0)		# Paint pixel
+	sw $t1, 3688($t0)		# Paint pixel
+	sw $t1, 3692($t0)		# Paint pixel
+	sw $t1, 3696($t0)		# Paint pixel
+	
+	# Restore $ra
+	lw $ra, 0($sp)			# Restore $ra
+	addi $sp, $sp, 4			# Prepare stack address
+	jr $ra	
+	
+	
+	
+
+	
+	
 
 # This function clears the registers
 clearRegisters:
