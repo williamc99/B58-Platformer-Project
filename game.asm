@@ -44,7 +44,6 @@
 .eqv	BUTTONGRAY 0x9e9e9e
 .eqv	BUTTONRED 0xff1745
 .eqv	BARRIERBROWN 0x4e342e
-.eqv	STOPPEDORANGE 0xff5622
 .eqv 	WINGREEN 0x17d421
 .eqv	LOSERED	0xe91e62
 
@@ -1895,17 +1894,6 @@ eraseCharacter:
 	addi $sp, $sp, 4			# Prepare stack address
 	jr $ra	
 	
-	
-
-
-
-
-
-	
-		
-																																															
-																																																				
-																																																								
 																																																												
 																																																																				
 	
